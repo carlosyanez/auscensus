@@ -1,0 +1,11 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+^data-raw$
+^LICENSE\.md$
+^docs
+^_pkgdown.yml
+^hex/*
+^img/*
+^\.github$
+^vignettes_orig/*
+^precompile/*
