@@ -40,3 +40,20 @@ for(i in 1:nrow(sources)){
 
 
 }
+
+
+#get general data  -----
+catalogue <- sources %>%
+  select(file) %>%
+  mutate(Year      = str_extract(file,"^[0-9]+"),
+         Unit      = str_extract(file,"^[0-9]+_[a-zA-Z]+") %>%
+                     str_remove(.,"^[0-9]+_"),
+         Statistic = str_remove(file,"^[0-9]+_[a-zA-Z]+__") %>%
+                     str_remove(.,".rda")
+         ) |>
+  select(-file)
+
+save_zip_parquet(catalogue,"catalogue",processed_files_dir)
+
+
+

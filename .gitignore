@@ -43,3 +43,5 @@ rsconnect/
 # End of https://www.toptal.com/developers/gitignore/api/r
 /data-raw/files/*
 /data-raw/processed/*
+/data-raw/*/raw/*
+/data-raw/*/processed/*
