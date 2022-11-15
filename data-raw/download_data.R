@@ -2,48 +2,58 @@ library(httr)
 library(tidyverse)
 library(here)
 library(fs)
+library(readxl)
 
 raw_files_dir <- here("data-raw","files")
 dir_create(raw_files_dir)
 
 # Get List ----
 
-censuses <- tribble(~ Census, ~ repo,
-                    2021,"HughParsonage/Census2021.DataPack/contents/data",
-                    2016,"HughParsonage/Census2016.DataPack/contents/data",
-                    2011,"HughParsonage/Census2011.DataPack/contents/data"
+censuses <- tribble(~ Census, ~ url,~type,
+                    2021,"https://www.abs.gov.au/census/find-census-data/datapacks/download/2021_GCP_all_for_AUS_short-header.zip","GCP",
+                    2016,"https://www.abs.gov.au/census/find-census-data/datapacks/download/2016_GCP_all_for_AUS_short-header.zip","GCP",
+                    2011,"https://www.abs.gov.au/census/find-census-data/datapacks/download/2011_BCP_all_for_AUST_short-header.zip","BCP",
+                    2006,"https://www.abs.gov.au/AUSSTATS/abs@archive.nsf/LookupAttach/2006CensusDataPack_BCPPublication04.11.200/$file/census06bcp.zip","BCP"
                     )
 
-to_download <- tibble()
+locator <- str_locate_all(censuses$url,"/")
+#rm(locations)
+for(i in 1:length(locator)){
+  pos_i <- max(locator[[i]][,1])
+  if(!exists("locations")){
+    locations <- pos_i
+  }else{
+    locations <- c(locations, pos_i)
 
-for(i in  1:nrow(censuses)){
+  }
 
-req <- GET(paste0("https://api.github.com/repos/",
-                  censuses[i,]$repo))
-
-file_list <- content(req)
-filenames <- sapply(file_list, function(x) x$name)
-
-file_list <- file_list[grepl("rda$", filenames)]
-
-to_download_i <- tibble(file = sapply(file_list, function(x) x$name),
-                        link = sapply(file_list, function(x) x$download_url)) %>%
-                 mutate(file=str_c(censuses[i,]$Census,"_",file),
-                        census =censuses[i,]$Census)
-
-to_download <- bind_rows(to_download,to_download_i)
 }
 
-# Download all files ----
+censuses$location <- locations
 
+censuses <- censuses %>%
+            mutate(filename = str_sub(url,location+1,str_length(url)))
 
-for(i in 1:nrow(to_download)){
-  source       <- to_download[i,]$link
-  destination  <- path(raw_files_dir,to_download[i,]$file)
+# download -----
+
+for(i in 1:nrow(censuses)){
+  source       <- censuses[i,]$url
+  destination  <- path(raw_files_dir,censuses[i,]$url)
 
   if(!file_exists(destination))
     download.file(source,destination)
 
 }
 
-write_csv(to_download,file=path(raw_files_dir,"sources.csv"))
+# unzip ----
+
+for(i in  1:nrow(censuses)){
+
+  source      <- path(raw_files_dir,censuses[i,]$filename)
+  dest        <- path(raw_files_dir,censuses[i,]$Census)
+  if(!dir_exists(dest)){
+     zip::unzip(source,exdir=path(raw_files_dir,censuses[i,]$Census))
+  }
+}
+rm(list=ls()[!(ls() %in% c("raw_files_dir"))])
+
