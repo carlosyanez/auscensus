@@ -45,15 +45,11 @@ for(i in 1:nrow(censuses)){
 
 }
 
-# unzip ----
+# rename ----
+for(i in 1:nrow(censuses)){
+  file_move(path(raw_files_dir,censuses[i,]$filename),
+                path(raw_files_dir,str_c(censuses[i,]$Census,".zip")))
 
-for(i in  1:nrow(censuses)){
-
-  source      <- path(raw_files_dir,censuses[i,]$filename)
-  dest        <- path(raw_files_dir,censuses[i,]$Census)
-  if(!dir_exists(dest)){
-     zip::unzip(source,exdir=path(raw_files_dir,censuses[i,]$Census))
-  }
 }
-rm(list=ls()[!(ls() %in% c("raw_files_dir"))])
+
 

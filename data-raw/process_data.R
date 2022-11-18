@@ -1,16 +1,23 @@
+#This file looks at the census files to :
+# 1. extract metadata files and record variables, translators, table names
+# 2. create a directory for all the files with the actual data, so they can be used in the package
+
 # Setup ----
+
 
 library(httr)
 library(tidyverse)
 library(here)
 library(fs)
 library(readxl)
-library(arrow)
+#library(arrow)
+library(zip)
 
 raw_files_dir <- here("data-raw","files")
 dir_create(raw_files_dir)
 processed_files_dir <- here("data-raw","processed")
 dir_create(processed_files_dir)
+
 
 # aux functions ----
 save_zip_parquet <- function(df,name,dest_dir){
@@ -26,31 +33,103 @@ save_zip_parquet <- function(df,name,dest_dir){
 
 }
 
-# Census 2021 ----
 # Folders and files ----
-census_year <-2021
-census_folder <- path(raw_files_dir,census_year)
-data_folder   <- path(census_folder,"2021 Census GCP All Geographies for AUS")
 
-metadata_file <- path(census_folder,"Metadata","Metadata_2021_GCP_DataPacks_R1_R2.xlsx")
-geo_file      <- path(census_folder,"Metadata","2021Census_geog_desc_1st_and_2nd_release.xlsx")
+census_year     <- c(2021,2016,2011,2006)
+census_strings  <- c("2021 Census GCP All Geographies for AUS",
+                     "2016 Census GCP All Geographies for AUS",
+                     "2011 Census BCP All Geographies for AUST",
+                     "Basic Community Profile")
 
-dest_folder   <- path(processed_files_dir,census_year)
-dir_create(dest_folder)
+metadata <- tibble()
+content  <- tibble()
+
+
+
+for(i in 1:length(census_year)){
+  zip_file    <- path(raw_files_dir,str_c(census_year[i],".zip"))
+  zip_content <- zip_list(zip_file)
+
+  #metadata and content files
+  metadata <- zip_content %>%
+    filter(str_detect(filename,"Metadata")) %>%
+    mutate(year=census_year[i])
+
+  content_i  <- zip_content %>%
+    filter(str_detect(filename,census_strings[i])) %>%
+    select(filename) %>%
+    mutate(Year=census_year[i],
+           zip = str_c(census_year[i],".zip")) %>%
+    mutate(geo = str_remove(filename,str_c(census_strings[i],"/")),
+           geo = str_extract(geo,"^[^/]+"),
+           element = str_extract(filename,"[a-zA-Z]{1}[0-9]{2,}")
+    )
+
+  content <- bind_rows(content,content_i)
+
+
+  #extract metadata files
+  census_folder <- path(raw_files_dir,census_year[i])
+  dir_create(census_folder)
+  zip::unzip(zip_file,metadata$filename,exdir = census_folder,junkpaths=TRUE)
+
+}
+rm(zip_file,zip_content,metadata,i,census_strings,content_i)
+
 
 # Get metadata and decoders ----
 
-geo_sheets <- excel_sheets(geo_file)
-geo_2021   <- map_dfr(excel_sheets(geo_file),  function(x){
-  read_xlsx(geo_file,sheet = x)
-})
 
-tables_2021      <- read_xlsx(metadata_file,sheet="Table Number, Name, Population",skip=8)
-descriptors_2021 <- read_xlsx(metadata_file,sheet="Cell Descriptors Information",skip=10)
+# Census 2011 to 2016 -----
 
-#filter by existing geos
-geo_list <- dir_ls(data_folder) %>% str_remove(.,str_c(data_folder,"/"))
-geo_2021 <- geo_2021 %>% filter(ASGS_Structure %in% geo_list)
+geo         <- tibble()
+tables      <- tibble()
+descriptors <- tibble()
+
+tables_string <- c("Table Number, Name, Population","Table number, name, population","Table number, name population")
+tables_skip   <- c(8,9,2)
+
+descriptors_string <- c("Cell Descriptors Information","Cell descriptors information","Cell descriptors information")
+descriptors_skips  <- c(10,10,3)
+
+
+for(i in 1:length(census_year)){
+  metadata       <- fs::dir_ls(path(raw_files_dir,census_year[i]))
+  geo_file       <- metadata[str_detect(metadata,"geo")]
+  metadata_file  <- metadata[str_detect(metadata,"Metadata")]
+
+  geo_sheets <- excel_sheets(geo_file)
+
+  geo_i   <- map_dfr(excel_sheets(geo_file),
+                        function(x){
+                               read_xlsx(geo_file,sheet = x)
+                        }) %>%
+              mutate(year=census_year[i])
+
+  colnames(geo_i) <- str_remove(geo_i,str_c("_",census_year[i]))
+
+  geo_i <- geo_i %>% select(-any_of("AGSS_Code"))
+
+  if(ncol(geo_i)==3){
+    geo_i <- geo_i %>%
+             rename("ASGS_Structure"="Level",
+                    "Census_Code"="Code",
+                    "Census_Name"="Label"
+                    ) %>%
+              mutate(AGSS_Code=Census_Code)
+  }
+
+  geo <- bind_rows(geo,geo_i)
+
+  tables_i      <- read_xlsx(metadata_file,sheet=tables_string[i],skip=tables_skip[i]) %>%
+                      mutate(year=census_year[i])
+  descriptors_i <- read_xlsx(metadata_file,sheet=descriptors_string[i],skip=descriptors_skip[i]) %>%
+                      mutate(year=census_year[i])
+
+
+
+
+}
 
 # Convert data files ----
 
@@ -63,6 +142,8 @@ for(geo in geo_list){
     data_subfolder      <- path(data_folder,geo,"AUS")
     geo_all_files <-  dir_ls(data_subfolder)
   }
+
+  keep_objects <- c(ls(),"keep_objects")
 
   print(geo)
 
@@ -93,7 +174,7 @@ for(geo in geo_list){
                 by=c("Code"="Census_Code_2021")) %>%
       mutate(Code=str_remove(Code,geo),
              Table_code=table,
-             Table=  tables_2021[j,]$`Table Name`,
+             Table=  tables_2021 %>% filter(`Table Number`==table) %>%  pull(`Table Name`),
              Geo=geo)  %>%
       mutate(Value=str_remove_all(Value,"[^0-9]"),
              Value=as.numeric(Value)) %>%
@@ -101,11 +182,15 @@ for(geo in geo_list){
 
     dest_filename <- str_c(census_year,geo,table,sep="_")
 
-    save_zip_parquet(data,dest_filename,dest_folder)
-    print(dest_filename)
+    if(regenerate | !exists(path(dest_filename,str_c(dest_filename,".zip")))){
+      save_zip_parquet(data,dest_filename,dest_folder)
+      print(dest_filename)
+    }
+
+    rm(list=ls()[!(ls() %in% keep_objects)])
+    dummy<- gc(verbose=FALSE,full=TRUE)
 
   }
 }
-
 
 
