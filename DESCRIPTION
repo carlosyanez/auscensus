@@ -1,13 +1,28 @@
-Package: auscensus
-Type: Package
-Title: What the Package Does (Title Case)
-Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Package: auspol
+Title: Access Australian Census Data (2006-2021)
+Version: 0.0.0.9000
+Authors@R: c(
+    person("Carlos", "Yáñez Santibáñez", , "carlos.yanez.s@gmail.com", role = c("aut", "cre")),
+    person(given="Craig", family="Alexander", email= "Craig.Alexander.2@glasgow.ac.uk", role=c("ths")),
+    person(given="Kyle", family="Walker", email="kyle@walker-data.com", role=c("cph")),
+    person("Australian Bureau of Statistics", role = c("cph"))
+    )
+Description: R package to interact with Australian Census Data Packs,providing an interface to extract data across multiple censuses
+URL: https://carlosyanez.github.io/auscensus/
+License: MIT + file LICENSE
+BugReports: https://github.com/carlosyanez/auscensus/issues
 Encoding: UTF-8
 LazyData: true
-Depends: 
-    R (>= 2.10)
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.1
+Imports:
+    fs,
+    tibble,
+    utils,
+    zip
+Suggests:
+    knitr,
+    rmarkdown,
+    testthat (>= 3.0.0)
+VignetteBuilder: knitr
+

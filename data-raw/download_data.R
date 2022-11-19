@@ -2,7 +2,6 @@ library(httr)
 library(tidyverse)
 library(here)
 library(fs)
-library(readxl)
 
 raw_files_dir <- here("data-raw","files")
 dir_create(raw_files_dir)
@@ -38,10 +37,10 @@ censuses <- censuses %>%
 
 for(i in 1:nrow(censuses)){
   source       <- censuses[i,]$url
-  destination  <- path(raw_files_dir,censuses[i,]$url)
+  destination  <- path(raw_files_dir,censuses[i,]$filename)
 
   if(!file_exists(destination))
-    download.file(source,destination)
+    download.file(source,destination,method="wget")
 
 }
 

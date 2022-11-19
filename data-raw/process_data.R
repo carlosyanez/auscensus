@@ -10,7 +10,7 @@ library(tidyverse)
 library(here)
 library(fs)
 library(readxl)
-#library(arrow)
+library(arrow)
 library(zip)
 
 raw_files_dir <- here("data-raw","files")
@@ -152,92 +152,63 @@ rm(list=ls()[!(ls() %in% keep_vars)])
 keep_vars <- ls()
 
 
-# Clean up dtaframes ----
+# Clean up data frames ----
 
-
-
-geo2 <- geo %>%
+geo <- geo %>%
+  select(-AGSS_Code) %>%
+  distinct() %>%
   mutate(ASGS_Structure = if_else(str_starts(ASGS_Structure,"SA"), ASGS_Structure, str_remove_all(ASGS_Structure,"\\d+")),
          Census_Name=case_when(
+           ASGS_Structure=="CED" & (str_detect(str_to_lower(Census_Name),"no usual") |
+                                    str_detect(str_to_lower(Census_Name),"offshore")) ~ Census_Name,
            ASGS_Structure=="CED" ~ str_remove_all(Census_Name,"\\((.*?)\\)") %>%
              str_remove_all(.,"\\(") %>%
              str_remove_all(.,"\\)") %>%
-             str_remove_all(.,",(.*?)$") %>%
-             str_squish(.),
-           TRUE ~ str_to_title(Census_Name)
-         ))
+             str_remove_all(.,",(.*?)$"),
+           ASGS_Structure=="POA" & (str_detect(str_to_lower(Census_Name),"no usual") |
+                                    str_detect(str_to_lower(Census_Name),"offshore") |
+                                      str_detect(str_to_lower(Census_Name),"unclassified")) ~ Census_Name,
+           ASGS_Structure=="POA" ~ str_remove_all(Census_Name,"[^0-9]+"),
+           TRUE ~ str_remove_all(Census_Name,"\\([A-Z]\\)")
+         ) %>% str_to_title(.) %>% str_squish(.)
+         ) %>%
+  #remove older statistical units
+  filter(!(ASGS_Structure %in% c("CCD","SLA","SD")))
 
-geo2 <- geo2 %>%
-  select(-AGSS_Code) %>%
+
+#geo_n <- geo %>%count(ASGS_Structure,Census_Name,Year)
+
+geo_key <- geo %>%
   distinct() %>%
   pivot_wider( names_from = Year,values_from = Census_Code )
 
-geo2 %>% filter(length(.$`2011`)==1)
 
-## Census 2006 does not confor to presente format - more time required to make it conform  ----
+geo_reverse <- geo %>%
+  distinct() %>%
+  pivot_wider(names_from = Year,values_from = Census_Name )
+
+# tables
+tables <- tables %>%
+          mutate(Initial=str_sub(`Table Number`,1,1),
+                 Number = str_remove(`Table Number`,Initial)) %>%
+          replace_na(list("Table Population"="NA")) %>%
+          select(-`Table Number`) %>%
+          pivot_wider(names_from = Year,values_from = Initial) %>%
+          relocate(Number, .before=1)
+
+  tables <- tables %>%
+          filter(!is.na(Number)) %>%
+          arrange(as.numeric(Number))
+
+
+#saving descriptors as-is
+save_zip_parquet(geo_key,"geo_key",processed_files_dir)
+save_zip_parquet(tables,"tables",processed_files_dir)
+save_zip_parquet(descriptors,"descriptors",processed_files_dir)
+save_zip_parquet(content,"content",processed_files_dir)
 
 
 
-# Convert data files ----
 
-for(geo in geo_list){
-
-  data_subfolder      <- path(data_folder,geo)
-  geo_all_files       <- dir_ls(data_subfolder)
-
-  if(length(geo_all_files)==1){
-    data_subfolder      <- path(data_folder,geo,"AUS")
-    geo_all_files <-  dir_ls(data_subfolder)
-  }
-
-  keep_objects <- c(ls(),"keep_objects")
-
-  print(geo)
-
-  for(table in tables$`Table Number`){
-
-    #print(table)
-
-    data_files <- geo_all_files[str_detect(geo_all_files,table)]
-    data <- tibble()
-    for(data_file in data_files){
-      #print(data_file)
-      data_i <- read_csv(data_file,col_types =  cols(.default = "c"))
-      data <- bind_rows(data,
-                        data_i)
-
-    }
-
-    data <- data %>%
-      rename("Code"=str_c(geo,"_CODE_2021")) %>%
-      pivot_longer(-c("Code"),names_to = "Attribute", values_to = "Value") %>%
-      left_join(descriptors_2021 %>%
-                  filter(DataPackfile==table) %>%
-                  select(Short,Long),
-                by=c("Attribute"="Short")) %>%
-      left_join(geo_2021 %>%
-                  filter(ASGS_Structure==geo) %>%
-                  select(Label="Census_Name_2021","Census_Code_2021"),
-                by=c("Code"="Census_Code_2021")) %>%
-      mutate(Code=str_remove(Code,geo),
-             Table_code=table,
-             Table=  tables_2021 %>% filter(`Table Number`==table) %>%  pull(`Table Name`),
-             Geo=geo)  %>%
-      mutate(Value=str_remove_all(Value,"[^0-9]"),
-             Value=as.numeric(Value)) %>%
-      select(Geo,Geo_code=Code,Geo_name=Label,Table_code,Table_name=Table,Value)
-
-    dest_filename <- str_c(census_year,geo,table,sep="_")
-
-    if(regenerate | !exists(path(dest_filename,str_c(dest_filename,".zip")))){
-      save_zip_parquet(data,dest_filename,dest_folder)
-      print(dest_filename)
-    }
-
-    rm(list=ls()[!(ls() %in% keep_objects)])
-    dummy<- gc(verbose=FALSE,full=TRUE)
-
-  }
-}
-
+## Census 2006 does not conform to present format - more time required to make it conform  ----
 
