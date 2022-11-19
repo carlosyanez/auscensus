@@ -35,11 +35,12 @@ save_zip_parquet <- function(df,name,dest_dir){
 
 # Folders and files ----
 
-census_year     <- c(2021,2016,2011,2006)
+census_year     <- c(2021,2016,2011) #,
+                     #2006)
 census_strings  <- c("2021 Census GCP All Geographies for AUS",
                      "2016 Census GCP All Geographies for AUS",
-                     "2011 Census BCP All Geographies for AUST",
-                     "Basic Community Profile")
+                     "2011 Census BCP All Geographies for AUST") #,
+                 #    "Basic Community Profile")
 
 metadata <- tibble()
 content  <- tibble()
@@ -79,21 +80,25 @@ rm(zip_file,zip_content,metadata,i,census_strings,content_i)
 
 # Get metadata and decoders ----
 
-
-# Census 2011 to 2016 -----
-
 geo         <- tibble()
 tables      <- tibble()
 descriptors <- tibble()
+
+keep_vars <- ls()
+
+# Census 2011 to 2016 -----
+
+
 
 tables_string <- c("Table Number, Name, Population","Table number, name, population","Table number, name population")
 tables_skip   <- c(8,9,2)
 
 descriptors_string <- c("Cell Descriptors Information","Cell descriptors information","Cell descriptors information")
-descriptors_skips  <- c(10,10,3)
+descriptors_skip  <- c(10,10,3)
 
 
-for(i in 1:length(census_year)){
+for(i in 1:length(census_year[1:3])){
+  print(census_year[i])
   metadata       <- fs::dir_ls(path(raw_files_dir,census_year[i]))
   geo_file       <- metadata[str_detect(metadata,"geo")]
   metadata_file  <- metadata[str_detect(metadata,"Metadata")]
@@ -102,34 +107,76 @@ for(i in 1:length(census_year)){
 
   geo_i   <- map_dfr(excel_sheets(geo_file),
                         function(x){
+                               print(x)
                                read_xlsx(geo_file,sheet = x)
                         }) %>%
-              mutate(year=census_year[i])
+              mutate(Year=census_year[i])
 
-  colnames(geo_i) <- str_remove(geo_i,str_c("_",census_year[i]))
+  colnames(geo_i) <- str_remove(colnames(geo_i),str_c("_",census_year[i]))
 
-  geo_i <- geo_i %>% select(-any_of("AGSS_Code"))
+  #geo_i <- geo_i %>% select(-any_of(c("AGSS_Code")))
 
-  if(ncol(geo_i)==3){
+  if(colnames(geo_i)[1]=="Level"){
     geo_i <- geo_i %>%
              rename("ASGS_Structure"="Level",
                     "Census_Code"="Code",
                     "Census_Name"="Label"
                     ) %>%
               mutate(AGSS_Code=Census_Code)
+
   }
 
-  geo <- bind_rows(geo,geo_i)
+  geo_i <- geo_i %>% select(ASGS_Structure,Census_Code,AGSS_Code,Census_Name,Year)
+
+  geo <- bind_rows(geo,geo_i) %>% distinct()
 
   tables_i      <- read_xlsx(metadata_file,sheet=tables_string[i],skip=tables_skip[i]) %>%
-                      mutate(year=census_year[i])
+                      mutate(Year=census_year[i])
+
+  colnames(tables_i) <- str_to_title(colnames(tables_i))
+
+  tables <- bind_rows(tables,tables_i) %>% distinct()
+
   descriptors_i <- read_xlsx(metadata_file,sheet=descriptors_string[i],skip=descriptors_skip[i]) %>%
-                      mutate(year=census_year[i])
+                      mutate(Year=census_year[i])
 
+  colnames(descriptors_i) <- str_remove_all(colnames(descriptors_i)," ")
 
+  descriptors_i <- descriptors_i %>% select(-Sequential)
 
+  descriptors <- bind_rows(descriptors,descriptors_i) %>% distinct()
 
 }
+
+rm(list=ls()[!(ls() %in% keep_vars)])
+keep_vars <- ls()
+
+
+# Clean up dtaframes ----
+
+
+
+geo2 <- geo %>%
+  mutate(ASGS_Structure = if_else(str_starts(ASGS_Structure,"SA"), ASGS_Structure, str_remove_all(ASGS_Structure,"\\d+")),
+         Census_Name=case_when(
+           ASGS_Structure=="CED" ~ str_remove_all(Census_Name,"\\((.*?)\\)") %>%
+             str_remove_all(.,"\\(") %>%
+             str_remove_all(.,"\\)") %>%
+             str_remove_all(.,",(.*?)$") %>%
+             str_squish(.),
+           TRUE ~ str_to_title(Census_Name)
+         ))
+
+geo2 <- geo2 %>%
+  select(-AGSS_Code) %>%
+  distinct() %>%
+  pivot_wider( names_from = Year,values_from = Census_Code )
+
+geo2 %>% filter(length(.$`2011`)==1)
+
+## Census 2006 does not confor to presente format - more time required to make it conform  ----
+
+
 
 # Convert data files ----
 
@@ -147,7 +194,7 @@ for(geo in geo_list){
 
   print(geo)
 
-  for(table in tables_2021$`Table Number`){
+  for(table in tables$`Table Number`){
 
     #print(table)
 
