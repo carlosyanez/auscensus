@@ -79,7 +79,7 @@ data_download <- function(download_dir){
   dir_create(download_dir)
   cache_dir <- find_cache()
 
-  censuses <- census_datapacks
+  censuses <- census_datapacks()
 
   for(i in 1:nrow(censuses)){
     source       <- censuses[i,]$url

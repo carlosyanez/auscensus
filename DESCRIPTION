@@ -18,11 +18,9 @@ RoxygenNote: 7.2.1
 Imports:
     fs,
     tibble,
-    utils,
-    zip
+    utils
 Suggests:
     knitr,
     rmarkdown,
     testthat (>= 3.0.0)
 VignetteBuilder: knitr
-
