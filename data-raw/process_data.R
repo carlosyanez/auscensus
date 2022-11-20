@@ -38,7 +38,7 @@ save_zip_parquet <- function(df,name,dest_dir){
 census_year     <- c(2021,2016,2011) #,
                      #2006)
 census_strings  <- c("2021 Census GCP All Geographies for AUS",
-                     "2016 Census GCP All Geographies for AUS",
+                     "2016 Census GCP All Geographies for AUST",
                      "2011 Census BCP All Geographies for AUST") #,
                  #    "Basic Community Profile")
 
@@ -203,6 +203,11 @@ tables <- tables %>%
   tables <- tables %>%
           filter(!is.na(Number)) %>%
           arrange(as.numeric(Number))
+
+
+desc <- descriptors %>%
+        select(DataPackfile,Profiletable,Columnheadingdescriptioninprofile, Year) %>%
+        distinct()
 
 
 #saving descriptors as-is

@@ -4,6 +4,7 @@
 #' @importFrom  rlang .data
 #' @importFrom dplyr filter if_any mutate across pull
 #' @importFrom stringr str_detect str_remove_all str_c
+#' @param mode Either "listed" or "available
 #' @export
 #' @keywords lists
 #' @include internal.R
@@ -11,23 +12,25 @@
 #' # Get list of all divisions
 #' list_census_years()
 #'  }
-list_census_years <- function(){
+list_census_years <- function(mode="available"){
 
   data <- get_auscensus_metadata("geo_key.zip")
   data  <- colnames(data)
   data  <- data[!(data %in% c("ASGS_Structure","Census_Name"))]
 
-  cache_dir <- find_census_cache()
+  if(mode=="available"){
+    cache_dir <- find_census_cache()
 
   #check metadata years against
-  files <- data_census_info() |>
-           filter(if_any(c("path"), ~str_detect(.x,"zip$"))) |>
-           pull(.data$path)
+    files <- data_census_info() |>
+             filter(if_any(c("path"), ~str_detect(.x,"zip$"))) |>
+             pull(.data$path)
 
-  files <- str_remove_all(files,str_c(cache_dir,"/"))
-  files <- str_remove_all(files,"\\.zip")
+    files <- str_remove_all(files,str_c(cache_dir,"/"))
+    files <- str_remove_all(files,"\\.zip")
 
-  data <- data[data %in% files]
+    data <- data[data %in% files]
+  }
 
 
   return(data)
@@ -57,7 +60,7 @@ list_census_geo_types <- function(){
           distinct()
 
   #find available years
-  years <- available_years()
+  years <- list_census_years()
 
   #filter by year, reduce to t
   data <- data |>
@@ -74,7 +77,7 @@ list_census_geo_types <- function(){
 #' @description Get list of available geopgrahies, filterable by type and name.
 #' @returns tibble, showing the geo type, available for each year
 #' @importFrom  rlang .data
-#' @importFrom dplyr filter if_any mutate across if_else arrange
+#' @importFrom dplyr filter if_any mutate across if_else arrange all_of
 #' @importFrom stringr str_detect
 #' @importFrom tidyr pivot_longer pivot_wider
 #' @param geo_types vector containing one or more geography types (i.e. "STE","CED","SA1" ). NULL by default.
@@ -112,7 +115,7 @@ list_census_geo <- function(geo_types=NULL,
 
 
   #find available years
-  years <- available_years()
+  years <- list_census_years()
 
   #filter by year, reduce to t
   data <- data |>
@@ -131,3 +134,56 @@ list_census_geo <- function(geo_types=NULL,
 
 
 
+#' Get census geographies, filterable
+#' @description Get list of available geopgrahies, filterable by type and name.
+#' @returns tibble, showing the geo type, available for each year
+#' @importFrom  rlang .data
+#' @importFrom dplyr filter if_any mutate across if_else arrange
+#' @importFrom stringr str_detect
+#' @importFrom tidyr pivot_longer pivot_wider
+#' @param number vector containing one or more table numbers
+#' @param table_name_regex string with a regular expression to filter table names (i.e. for all elements containing with Country : "Country")
+#' @export
+#' @keywords lists
+#' @include internal.R
+#' @examples \dontrun{
+#' # Get list of all divisions
+#' list_census_geo()
+#'  }
+list_census_tables <- function(number=NULL, table_name_regex=NULL){
+
+  #load data
+  data <- get_auscensus_metadata("tables.zip")
+
+  if(!is.null(number)){
+    data <- data  |>
+      filter(if_any(c("Number"), ~ .x %in% number))
+  }
+
+  if(!is.null(table_name_regex)){
+    data <- data |>
+      filter(if_any(c("Table Name"),
+                    ~ str_detect(.x,table_name_regex)))
+  }
+
+
+  #find available years
+  years <- list_census_years()
+
+  #nominal years
+  nominal_years <- list_census_years(mode="all")
+  non_year_cols <- colnames(data)[!(colnames(data) %in% nominal_years)]
+
+  data <- data |>
+    pivot_longer(-all_of(non_year_cols),
+                 names_to = "year",
+                 values_to= "value") |>
+    filter(if_any(c("year"), ~ .x %in% years)) |>
+    mutate(across(c("value"), ~ if_else(is.na(.x),FALSE,TRUE))) |>
+    filter(if_any(c("value"), ~ .x ==TRUE)) |>
+    pivot_wider(names_from = "year",values_from = "value") |>
+    arrange(as.numeric(.data$Number))
+
+
+  return(data)
+}

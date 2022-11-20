@@ -4,7 +4,10 @@
 \alias{list_census_years}
 \title{Get Census years.}
 \usage{
-list_census_years()
+list_census_years(mode = "available")
+}
+\arguments{
+\item{mode}{Either "listed" or "available}
 }
 \value{
 vector with years

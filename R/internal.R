@@ -99,22 +99,6 @@ load_auscensus <- function(auscensus_file,
 
 }
 
-#' Helper function to find census years with imported files (i.e. available)
-#' @importFrom  stringr str_remove_all str_detect str_c
-#' @importFrom dplyr filter if_any pull
-#' @return string vector
-#' @noRd
-available_years <- function(){
-
-  years <- data_census_info() |>
-    filter(if_any(c("path"), ~str_detect(.x,"zip$"))) |>
-    pull(.data$path)
-
-  cache_dir <- find_census_cache()
-  years <- str_remove_all(years,str_c(cache_dir,"/"))
-  years <- str_remove_all(years,"\\.zip")
-
-}
 
 
 
