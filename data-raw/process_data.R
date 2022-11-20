@@ -180,12 +180,16 @@ geo <- geo %>%
 
 geo_key <- geo %>%
   distinct() %>%
-  pivot_wider( names_from = Year,values_from = Census_Code )
+  pivot_wider( names_from = Year,
+               values_from = Census_Code,
+               values_fn = ~ str_c(.x,collapse=","))
 
 
 geo_reverse <- geo %>%
   distinct() %>%
-  pivot_wider(names_from = Year,values_from = Census_Name )
+  pivot_wider(names_from = Year,
+              values_from = Census_Name,
+              values_fn = ~ str_c(.x,collapse=","))
 
 # tables
 tables <- tables %>%
@@ -203,6 +207,7 @@ tables <- tables %>%
 
 #saving descriptors as-is
 save_zip_parquet(geo_key,"geo_key",processed_files_dir)
+save_zip_parquet(geo_reverse,"geo_reverse",processed_files_dir)
 save_zip_parquet(tables,"tables",processed_files_dir)
 save_zip_parquet(descriptors,"descriptors",processed_files_dir)
 save_zip_parquet(content,"content",processed_files_dir)

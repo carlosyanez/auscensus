@@ -51,12 +51,10 @@ manage_cache_dir <- function(path) {
 }
 
 #' Helper function to download  data
-#' @param download_dir full path of the directory to donwload the files
 #' @importFrom tibble tribble
 #' @returns nothing
 #' @export
 #' @keywords helpers
-#'
 census_datapacks <- function(){
   tribble(~ Census, ~ url,~type,
           2021,"https://www.abs.gov.au/census/find-census-data/datapacks/download/2021_GCP_all_for_AUS_short-header.zip","GCP",
@@ -69,28 +67,33 @@ census_datapacks <- function(){
 
 #' Helper function to download  data
 #' @param download_dir full path of the directory to donwload the files
-#' @importFrom fs file_exists
+#' @importFrom fs file_exists dir_create path
+#' @importFrom utils download.file
+#' @importFrom dplyr filter if_any
+#' @param download_dir Full path where to download census files (required)
+#' @param census_year census year to download (default to all)
+#' @param download_method method to pass to download.file() ("wget" as default)
 #' @returns nothing
 #' @export
 #' @keywords helpers
 #'
-data_download <- function(download_dir){
+data_census_download <- function(download_dir,census_year=NULL,download_method="wget"){
 
   dir_create(download_dir)
-  cache_dir <- find_cache()
-
   censuses <- census_datapacks()
+
+  if(!is.null(census_year))
+    censuses <- censuses |>
+                filter(if_any(c("Census"), ~ .x %in% census_year))
 
   for(i in 1:nrow(censuses)){
     source       <- censuses[i,]$url
-    destination  <- path(raw_files_dir,paste0(censuses[i,]$Census,".zip"))
+    destination  <- path(download_dir,paste0(censuses[i,]$Census,".zip"))
 
     if(!file_exists(destination))
-      download.file(source,destination,method="wget")
+      download.file(source,destination,method=download_method)
 
   }
-
-
 }
 
 
@@ -99,7 +102,7 @@ data_download <- function(download_dir){
 #' @returns nothing
 #' @export
 #' @keywords helpers
-data_info <- function(){
+data_census_info <- function(){
   cache_dir <- Sys.getenv('auscensus_cache_dir')
   dir_info(cache_dir)
 }
@@ -107,12 +110,12 @@ data_info <- function(){
 #' Helper function to update/download  data
 #' @importFrom fs dir_ls file_delete
 #' @returns nothing
-#' @param file to delete - defaults to all of them
+#' @param file to delete - defaults to all of them (provide full path, can obtain from data_census_info)
 #' @export
 #' @keywords helpers
-data_delete <- function(file=NULL){
+data_census_delete <- function(file=NULL){
   if(is.null(file)){
-    file <- data_info()$path
+    file <- data_census_info()$path
   }
 
   file_delete(file)
@@ -121,12 +124,16 @@ data_delete <- function(file=NULL){
 #' Helper function to update/download  data
 #' @importFrom  fs file_copy
 #' @returns nothing
+#' @importFrom stringr str_extract
 #' @param file file to import to the cache
 #' @export
 #' @keywords helpers
-data_import <- function(file){
+data_census_import <- function(file){
   cache_dir <- Sys.getenv('auscensus_cache_dir')
-  file_copy(file,path(cache_dir,file),TRUE)
+
+  filename <- str_extract(file,"([+-]?(?=\\.\\d|\\d)(?:\\d+)?(?:\\.?\\d*))(?:[eE]([+-]?\\d+))?[a-zA-Z]+")
+
+  file_copy(file,path(cache_dir,filename),TRUE)
 
 }
 
@@ -134,7 +141,7 @@ data_import <- function(file){
 #' @returns nothing
 #' @export
 #' @keywords helpers
-find_cache<- function(){
+find_census_cache<- function(){
   cache_dir <- Sys.getenv('auscensus_cache_dir')
   return(cache_dir)
 
