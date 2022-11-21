@@ -21,6 +21,7 @@ Imports:
     fs,
     methods,
     piggyback,
+    readr,
     rlang,
     stringr,
     tibble,
@@ -35,5 +36,6 @@ VignetteBuilder: knitr
 Collate: 
     'cache_management.R'
     'internal.R'
+    'get_content.R'
     'lists.R'
     'onLoad.R'

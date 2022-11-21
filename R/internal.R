@@ -2,8 +2,6 @@
 ### Internal functions ####
 #############################################################
 
-
-
 #' Obtain get data from filename
 #' @return data frame with data from file, filtered by division and election year
 #' @importFrom dplyr filter if_any
@@ -12,7 +10,6 @@
 #' @param filename where the file is (parquet or zip containing parquet file)
 #' @param filters *(optional)* list() with filters in the form list(Column="Value")
 #' @noRd
-#' @export
 get_auscensus_metadata<- function(filename,filters=NULL){
 
   data <- load_auscensus(filename)

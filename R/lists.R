@@ -187,3 +187,58 @@ list_census_tables <- function(number=NULL, table_name_regex=NULL){
 
   return(data)
 }
+
+#' Get names of attributes for a given census tables, across all time
+#' @description Get list of available geopgrahies, filterable by type and name.
+#' @returns tibble, showing the geo type, available for each year
+#' @importFrom dplyr filter if_any mutate across rename distinct
+#' @importFrom stringr str_detect str_remove str_to_title
+#' @importFrom tidyr  pivot_wider
+#' @param number vector containing one or more table numbers
+#' @param table_name_regex string with a regular expression to filter table names (i.e. for all elements containing with Country : "Country")
+#' @export
+#' @keywords lists
+#' @include internal.R
+#' @examples \dontrun{
+#' # Get list of all divisions
+#' list_census_attributes()
+#'  }
+list_census_attributes <- function(number=NULL, table_name_regex=NULL){
+
+  data <- get_auscensus_metadata("descriptors.zip")
+  avail_years <- list_census_years()
+
+ data <-  data |>
+    mutate(across(c("Long"), ~ str_to_title(.x))) |>
+    mutate(across(c("Profiletable"), ~ str_remove(.x,"[a-zA-Z]$"))) |>
+    filter(if_any(c("Profiletable"),~str_detect(.x,number)))
+
+
+ if(!is.null(number)){
+   data  <- data |>
+    mutate(Profiletable=number)
+ }
+
+  data <- data |>
+    filter(if_any(c("Year"), ~ .x %in% avail_years)) |>
+    select(c("Profiletable","Long","Year"))|>
+    mutate(dummy=TRUE) |>
+    distinct() |>
+    pivot_wider(any_of(c("Profiletable","Long")),
+                values_from = "dummy",names_from = "Year") |>
+    rename("Table"="Profiletable","Attribute"="Long")
+
+
+  if(!is.null(table_name_regex)){
+    data <- data |>
+      filter(if_any(c("Attribute"), ~ str_detect(.x,table_name_regex)))
+
+  }
+
+ return(data)
+
+
+}
+
+
+
