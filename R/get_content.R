@@ -208,6 +208,12 @@ get_census_summary <- function(table_number,
     data_i <- data_i |>
       pivot_longer(-any_of(c("Year","Unit")),names_to="Attribute",values_to="Value")
 
+    if(!is.null(attributes)){
+      data_i <- data_i |>
+        filter(if_any(c("Attribute"),~ .x %in% attributes ))
+
+    }
+
     if(!is.null(reference_total)){
       total <-  data_i |>
         filter(if_any(c("Attribute"), ~ .x==reference_total))  |>
