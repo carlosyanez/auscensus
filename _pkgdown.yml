@@ -1,0 +1,36 @@
+template:
+  bootstrap: 5
+  bootswatch: cosmo
+  params:
+    ganalytics: G-G75W4FBYH8
+  bslib:
+    fg: "#00843D"
+    bg: "white"
+    primary: "#FFCD00"
+  opengraph:
+    image:
+      src: img/bbox_ghcard.png
+      alt: "{auscensus}: Australian Census Data"
+      twitter:
+      creator: "@carlosyanez"
+      card: summary_large_image
+
+navbar:
+  structure:
+    left:  [home, reference,articles]
+    right: [github]
+  components:
+
+
+home:
+  title: auscensus
+  description: Australian Censuses in R.
+repo:
+  url:
+    home: https://github.com/carlosyanez/auspol/
+    issues: https://github.com/carlosyanez/auspol/issues/
+    user: https://github.com/carlosyanez/
+authors:
+  Carlos Yáñez Santibáñez:
+    href: http://www.carlosyanez.id.au
+
