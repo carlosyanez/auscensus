@@ -7,11 +7,7 @@ auscensus
   
 <img src="https://github.com/carlosyanez/auscensus/raw/main/img/hexSticker.png" width = "175" height = "200" align="right" />
 
-**auscensus** provides result data for the Australian Federal Elections, from 2004 onwards, direclty from R.
-Along with functions to access the data, this package also provides functions to provide summaries tables and plots.
-The current version provides election data for the House of Representatives.
-
-All the data is contained as a release ([here](https://github.com/carlosyanez/auscensus/releases/tag/data)) in [Apache Parquet format](https://arrow.apache.org/docs/r/index.html), so it can be used directly in any programming language/tool/platform that supports Parquet.
+**auscensus** provides a way read data from the Australian Bureau of Statistics Data Packs. The motivation behind the package is to be able to easily being to pull out datapoints for multiple geographic structures for along different censuses. Currently this package works well with ABS data packs from 2011 to 2021.
 
 
 ## Installation and pre-requisites
