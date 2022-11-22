@@ -38,7 +38,7 @@ install.packages('auscensus')
 
 This package provides a series of functions to access the from different censuses. For reference on how to check the [articles](articles/index.html).
 
-## ATTENTION - BATTERIES NOT INCLUDE.
+## ATTENTION - BATTERIES NOT INCLUDED!
 
 Please note this package is made to interact with the Census Data Packs but does not include them. Please refer to the articles to see how to import the relevant data.
 
