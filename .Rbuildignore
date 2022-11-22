@@ -9,3 +9,4 @@
 ^\.github$
 ^vignettes_orig/*
 ^precompile/*
+.github/*

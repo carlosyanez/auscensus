@@ -70,8 +70,7 @@
 </h1></div>
 <p><!-- badges: start --> <a href="https://github.com/carlosyanez/auscensus/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/carlosyanez/auscensus/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a> <a href="https://carlosyanez.r-universe.dev" class="external-link"><img src="https://carlosyanez.r-universe.dev/badges/auscensus" alt="auscensus status badge"></a> <!-- badges: end --></p>
 <p><img src="https://github.com/carlosyanez/auscensus/raw/main/img/hexSticker.png" width="175" height="200" align="right"></p>
-<p><strong>auscensus</strong> provides result data for the Australian Federal Elections, from 2004 onwards, direclty from R. Along with functions to access the data, this package also provides functions to provide summaries tables and plots. The current version provides election data for the House of Representatives.</p>
-<p>All the data is contained as a release (<a href="https://github.com/carlosyanez/auscensus/releases/tag/data" class="external-link">here</a>) in <a href="https://arrow.apache.org/docs/r/index.html" class="external-link">Apache Parquet format</a>, so it can be used directly in any programming language/tool/platform that supports Parquet.</p>
+<p><strong>auscensus</strong> provides a way read data from the Australian Bureau of Statistics Data Packs. The motivation behind the package is to be able to easily being to pull out datapoints for multiple geographic structures for along different censuses. Currently this package works well with ABS data packs from 2011 to 2021.</p>
 <div class="section level2">
 <h2 id="installation-and-pre-requisites">Installation and pre-requisites<a class="anchor" aria-label="anchor" href="#installation-and-pre-requisites"></a>
 </h2>
@@ -93,7 +92,7 @@
 <p>This package provides a series of functions to access the from different censuses. For reference on how to check the <a href="articles/index.html">articles</a>.</p>
 </div>
 <div class="section level2">
-<h2 id="attention---batteries-not-include">ATTENTION - BATTERIES NOT INCLUDE.<a class="anchor" aria-label="anchor" href="#attention---batteries-not-include"></a>
+<h2 id="attention---batteries-not-included">ATTENTION - BATTERIES NOT INCLUDED!<a class="anchor" aria-label="anchor" href="#attention---batteries-not-included"></a>
 </h2>
 <p>Please note this package is made to interact with the Census Data Packs but does not include them. Please refer to the articles to see how to import the relevant data.</p>
 </div>
