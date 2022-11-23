@@ -124,7 +124,9 @@ data_census_delete <- function(file=NULL){
 #' Helper function to update/download  data
 #' @importFrom  fs file_copy
 #' @returns nothing
-#' @importFrom stringr str_extract
+#' @importFrom stringr str_extract str_detect
+#' @importFrom dplyr filter
+#' @importFrom zip zip_list unzip
 #' @param file file to import to the cache
 #' @export
 #' @keywords helpers
@@ -134,6 +136,14 @@ data_census_import <- function(file){
   filename <- str_extract(file,"([+-]?(?=\\.\\d|\\d)(?:\\d+)?(?:\\.?\\d*))(?:[eE]([+-]?\\d+))?[a-zA-Z]+")
 
   file_copy(file,path(cache_dir,filename),TRUE)
+
+  if(str_detect(filename,"\\.zip")){
+      zip_content <- zip_list(filename)
+      zip_content <- zip_content %>% filter(str_detect(filename,"\\.zip"))
+      unzip(filename,zip_content$filename,junkpaths = TRUE,exdir = cache_dir)
+
+
+  }
 
 }
 

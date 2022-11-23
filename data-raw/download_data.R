@@ -16,7 +16,7 @@ censuses <- tribble(~ Census, ~ file,~type,
                     )
 
 
-censuses %>%
+censuses <- censuses %>%
   mutate(zip=str_extract(file,"/*\\.zip"))
 
 #for(i in  1:nrow(censuses)){
