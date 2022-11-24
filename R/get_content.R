@@ -76,8 +76,8 @@ get_census_data <- function(census_table,geo_structure,selected_years=list_censu
         names(data)[i] <- content_stubs[i,]$identifier
     }else{
 
-      if(!exists("content")){
-        content <- get_auscensus_metadata("content.zip") |>
+      if(!exists("content_data")){
+        content_data <- get_auscensus_metadata("content.zip") |>
           left_join(content_stubs |> select(-any_of(c("flag","cached_file","identifier"))),
                     by=c("Year","element","geo")) |>
           filter(if_any(c("cache_exists"), ~ .x==FALSE))
@@ -96,8 +96,8 @@ get_census_data <- function(census_table,geo_structure,selected_years=list_censu
           filter(if_any(c("flag"),~.x==TRUE))
       }
 
-    content_i <- content |>
-      select(-any_of("flag")) |>
+    content_i <- content_data |>
+      select(-any_of(c("flag"))) |>
       left_join(content_stubs[i,], by=c("geo","Year","element")) |>
       filter(if_any("flag", ~ .x==TRUE))
 
@@ -108,26 +108,37 @@ get_census_data <- function(census_table,geo_structure,selected_years=list_censu
 
     data_i <- NULL
 
-    for(j in 1:nrow(content_i)){
-      #read file
+    content_sub_elements <- unique(content_i$sub_element)
 
-      zip_file <- path(cache_dir,content_i[j,]$zip)
-      filename <- content_i[j,]$filename
-      temp_file <- path(cache_dir,str_extract(filename,"[^/\\\\&\\?]+\\.\\w{3,4}(?=([\\?&].*$|$))"))
-      unzip(zipfile = zip_file,files=filename,junkpaths = TRUE,exdir = cache_dir)
-      data_j       <- read_csv(temp_file,col_types = "c")
-      file_delete(temp_file)
+    for(j in 1:length(content_sub_elements)){
+      content_j <- content_i |> filter(if_any(c("sub_element"),~.x==content_sub_elements[j]))
+      data_j <- NULL
 
-      data_j_col1 <- colnames(data_j)[1]
-      data_j      <- data_j |>
-        pivot_longer(-any_of(c(data_j_col1)), names_to = "Short",values_to = "Value") |>
-        left_join(descriptors |> select(any_of(c("Short","Long"))),
-                  by="Short") |>
-        select(-any_of("Short")) |>
-        mutate(Long=str_to_title(.data$Long)) |>
-        distinct() |>
-        pivot_wider(names_from = "Long",values_from = "Value")
+      for(k in 1:nrow(content_j)){
+        zip_file <- path(cache_dir,content_j[k,]$zip)
+        filename <- content_j[k,]$filename
+        temp_file <- path(cache_dir,str_extract(filename,"[^/\\\\&\\?]+\\.\\w{3,4}(?=([\\?&].*$|$))"))
+        unzip(zipfile = zip_file,files=filename,junkpaths = TRUE,exdir = cache_dir)
+        data_k       <- read_csv(temp_file,col_types = "c")
+        file_delete(temp_file)
 
+        data_k_col1 <- colnames(data_k)[1]
+        data_k      <- data_k |>
+          pivot_longer(-any_of(c(data_k_col1)), names_to = "Short",values_to = "Value") |>
+          left_join(descriptors |> select(any_of(c("Short","Long"))),
+                    by="Short") |>
+          select(-any_of("Short")) |>
+          mutate(Long=str_to_title(.data$Long)) |>
+          distinct() |>
+          pivot_wider(names_from = "Long",values_from = "Value")
+
+        if(is.null(data_j)){
+          data_j <- data_k
+        }else{
+          data_j <- bind_rows(data_j,data_k)
+
+        }
+      }
 
       if(is.null(data_i)){
         data_i <- data_j
@@ -140,6 +151,7 @@ get_census_data <- function(census_table,geo_structure,selected_years=list_censu
 
       }
     }
+    rm(data_j,data_k,j,k)
 
     colnames(data_i)[1] <- "Census_Code"
 

@@ -122,9 +122,9 @@ data_census_delete <- function(file=NULL){
 }
 
 #' Helper function to update/download  data
-#' @importFrom  fs file_copy
+#' @importFrom  fs file_copy path file_move
 #' @returns nothing
-#' @importFrom stringr str_extract str_detect
+#' @importFrom stringr str_extract str_detect str_remove str_c
 #' @importFrom dplyr filter
 #' @importFrom zip zip_list unzip
 #' @param file file to import to the cache
@@ -134,13 +134,28 @@ data_census_import <- function(file){
   cache_dir <- Sys.getenv('auscensus_cache_dir')
 
   filename <- str_extract(file,"([+-]?(?=\\.\\d|\\d)(?:\\d+)?(?:\\.?\\d*))(?:[eE]([+-]?\\d+))?[a-zA-Z]+")
+  cached_file <- path(cache_dir,filename)
+  year_prefix <- str_extract(file,"[0-9]{4}")
 
-  file_copy(file,path(cache_dir,filename),TRUE)
+  file_copy(file,cached_file,TRUE)
+  zip_content <- zip_list(cached_file)
+  zip_content <- zip_content %>% filter(str_detect(filename,"\\.zip")) %>% filter(!str_detect(filename,"[Mm]etadata"))
 
-  if(str_detect(filename,"\\.zip")){
-      zip_content <- zip_list(filename)
-      zip_content <- zip_content %>% filter(str_detect(filename,"\\.zip"))
-      unzip(filename,zip_content$filename,junkpaths = TRUE,exdir = cache_dir)
+  if(nrow(zip_content)>0){
+      message("zip files within zip file, extracting")
+      print(zip_content$filename)
+      unzip(cached_file,zip_content$filename,junkpaths = TRUE,exdir = cache_dir)
+
+      for(new_file in zip_content$filename){
+        if(year_prefix=="2006"){
+          base_name <- str_remove(new_file,"Basic Community Profile/")
+        }else{
+          base_name <-  str_extract(new_file,"([+-]?(?=\\.\\d|\\d)(?:\\d+)?(?:\\.?\\d*))(?:[eE]([+-]?\\d+))?[a-zA-Z]+")
+        }
+
+        file_move(path(cache_dir,base_name),path(cache_dir,str_c(year_prefix,"_",base_name)))
+
+      }
 
 
   }

@@ -175,39 +175,95 @@ descriptors_2006 <-  read_xls(path(raw_files_dir,"2006","BCP2006_cell_desc_dp.xl
 zip_file    <- path(raw_files_dir,str_c("2006",".zip"))
 zip_content <- zip_list(zip_file)
 
-zip_2 <- zip_content %>% filter(str_detect(filename,"\\.zip"))
+zip_2 <- zip_content %>%
+          filter(str_detect(filename,"\\.zip")) %>%
+          mutate(just_file= str_extract(filename,"[^/\\\\&\\?]+\\.\\w{3,4}(?=([\\?&].*$|$))"),
+                 new_file=str_c("2006_",just_file),
+                 unzipped= str_c(raw_files_dir,"/",new_file))
+
+
 unzip(zip_file,zip_2$filename,junkpaths = TRUE,exdir = raw_files_dir)
 
-zip_2 <- zip_2 %>% mutate(unzipped= str_c(raw_files_dir,"/",str_extract(filename,"[^/\\\\&\\?]+\\.\\w{3,4}(?=([\\?&].*$|$))")))
+fs::file_move(path(raw_files_dir,zip_2$just_file),path(raw_files_dir,zip_2$new_file))
 
 for(i in 1:nrow(zip_2)){
-  content_i <- zip_list(zip_2[i,]$unzipped) %>% mutate(zipped=zip_2[i,]$filename)
+  content_i <- zip_list(zip_2[i,]$unzipped) %>% mutate(zipped=zip_2[i,]$new_file)
 
-  if(!exists("content_2006")){
-    content_2006<- content_i %>% filter(!str_detect(filename,"\\.csv"))
+  if(!exists("content_2006_i")){
+    content_2006_i<- content_i   # %>% filter(!str_detect(filename,"\\.csv"))
   }else{
-    content_2006 <- bind_rows(content_2006,content_i)
+    content_2006_i <- bind_rows(content_2006_i,content_i)
   }
 
 }
+
 zip_content <- zip_content %>% mutate(zipped="")
-colnames(zip_content)
-colnames(content_2006)
+
+#colnames(zip_content)
+#colnames(content_2006)
 
 
 content_2006 <- bind_rows(zip_content %>% select(filename,zipped),
-                          content_2006 %>% select(filename,zipped)) %>%
-                filter(str_detect(filename,"Basic Community Profile")| !is.na(zipped))      %>%
+                          content_2006_i %>% select(filename,zipped)) %>%
                 mutate(Year="2006",
-                      zip = if_else(zipped=="","2006.zip",str_remove_all(zipped,"Basic Community Profile/"))) %>%
-                filter(str_detect(filename,"Bascis Community Profile")|(zipped!=""))
-  mutate(geo = str_remove(filename,str_c(census_strings[i],"/")),
+                      zip = if_else(zipped=="","2006.zip",zipped)) %>%
+                mutate(stub=case_when(
+                  zip=="2006.zip" ~ "Basic Community Profile",
+                  zip=="2006_BCP_ASGC_06_R2.1.zip" ~ "BCP_ASGC_06_R2.1",
+                  zip=="2006_BCP_CGIA_06_R2.0.zip" ~ "BCP_CGIA_06_R2.0"
+                )) %>%
+  mutate(geo = str_remove(filename,str_c(stub,"/")),
          geo = str_extract(geo,"^[^/]+"),
          element = str_extract(filename,"[a-zA-Z]{1}[0-9]{2,}")
-  )
+  ) %>%
+  filter(!is.na(element)) %>%
+  select(-any_of(c("zipped","stub"))) %>%
+  mutate(Year=as.numeric(Year)) %>%
+  mutate(sub_element = str_extract(filename,"[a-zA-Z]{1}[0-9]{2,}(_)?[a-zA-Z]{1}"))
 
 
-  content_2006[6,]$filename
+#merge into main elements -----
+colnames(content)
+colnames(content_2006)
+
+content <- bind_rows(content,content_2006) %>%
+            distinct() %>%
+            mutate(sub_element=if_else(is.na(sub_element),element,sub_element))
+
+
+#descriptors
+
+descriptors_2006 <- descriptors_2006 %>% rename("Short"="Cell_Id",
+                            "Long"="Cell_desc_long",
+                            "Columnheadingdescriptioninprofile"="Column_label_Desc",
+                            "Profiletable"="Table") %>%
+                    mutate(DataPackfile=str_c(Profiletable,str_to_upper(Split_Table_DataPack))) %>%
+                    select(-Split_Table_DataPack ,-Split_Table_Profile ,-Cell_desc_short ) %>%
+                    mutate(Year=as.numeric(Year))
+
+colnames(descriptors)
+colnames(descriptors_2006)
+
+descriptors <- bind_rows(descriptors,descriptors_2006) %>% distinct()
+
+
+#geo
+
+colnames(geo)
+colnames(geo_2006)
+
+geo <- bind_rows(geo, geo_2006 %>% mutate(Year=as.numeric(Year))) %>%distinct()
+
+
+#tables
+colnames(tables)
+colnames(tables_2006)
+
+tables <- bind_rows(tables, tables_2006 %>% mutate(Year=as.numeric(Year))) %>%
+          distinct() %>%
+          filter(!is.na(`Table Number`))
+
+
 # Clean up data frames ----
 
 geo <- geo %>%
@@ -256,13 +312,13 @@ tables <- tables %>%
           pivot_wider(names_from = Year,values_from = Initial) %>%
           relocate(Number, .before=1)
 
-  tables <- tables %>%
+tables <- tables %>%
           filter(!is.na(Number)) %>%
           arrange(as.numeric(Number))
 
 
-desc <- descriptors %>%
-        select(DataPackfile,Profiletable,Columnheadingdescriptioninprofile, Year) %>%
+descriptors <- descriptors %>%
+        mutate(DataPackfile=if_else(is.na(DataPackfile),Profiletable,DataPackfile)) %>%
         distinct()
 
 
@@ -276,5 +332,4 @@ save_zip_parquet(content,"content",processed_files_dir)
 
 
 
-## Census 2006 does not conform to present format - more time required to make it conform  ----
 
