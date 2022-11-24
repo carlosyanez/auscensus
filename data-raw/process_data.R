@@ -151,6 +151,8 @@ rm(list=ls()[!(ls() %in% keep_vars)])
 keep_vars <- ls()
 
 
+
+
 # Census 2006 ----
 
 geo_2006  <- read_xls(path(raw_files_dir,"2006","Census2006_geog_desc.xls"),sheet = "Sheet1", col_types  ="text") %>%
@@ -322,7 +324,17 @@ descriptors <- descriptors %>%
         distinct()
 
 
-#saving descriptors as-is
+a <-content %>% distinct(geo,element,Year) %>%
+  mutate(initial=TRUE,
+         table   = str_sub(element,2)) %>%
+  select(-element) %>%
+  distinct() %>%
+  pivot_wider(c(table,geo),values_from = initial,names_from = "Year")
+
+
+a  %>% filter
+
+#saving descriptors as-is ----
 save_zip_parquet(geo_key,"geo_key",processed_files_dir)
 save_zip_parquet(geo_reverse,"geo_reverse",processed_files_dir)
 save_zip_parquet(tables,"tables",processed_files_dir)

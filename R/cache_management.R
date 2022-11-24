@@ -139,7 +139,7 @@ data_census_import <- function(file){
 
   file_copy(file,cached_file,TRUE)
   zip_content <- zip_list(cached_file)
-  zip_content <- zip_content %>% filter(str_detect(filename,"\\.zip")) %>% filter(!str_detect(filename,"[Mm]etadata"))
+  zip_content <- zip_content |> filter(str_detect(filename,"\\.zip")) |> filter(!str_detect(filename,"[Mm]etadata"))
 
   if(nrow(zip_content)>0){
       message("zip files within zip file, extracting")
