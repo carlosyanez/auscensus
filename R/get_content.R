@@ -208,11 +208,21 @@ get_census_data <- function(census_table,geo_structure,selected_years=list_censu
 #' @param geo_units geo units
 #' @param selected_years  years to filter
 #' @param reference_total reference total
+#' @param percentage_scale 1 if percentage to be presented in scale 0-1, or 100 to be shown as 0%-100%
 #' @param cache if TRUE, will save the query in the cache (in parquet file) for later use
 #' @param ignore_cache If TRUE, it will ignore cached files
 #' @importFrom rlang .data
 #' @include internal.R
 #' @keywords getdata
+#' @examples \dontrun{
+#' get_census_summary(table_number = "04",
+#'     attributes = list("60 year old male"=c("Age_years_60_males","Age (Years): 60_males"),
+#'                       "60 year old female"=c("Age_years_60_males","Age (Years): 60_females")),
+#'     geo_units = c("Melbourne","Stonnington","Yarra"),
+#'     reference_total = list("Total"=c("Total_persons")),
+#      geo_structure = "LGA")
+#'
+#' }
 #' @export
 get_census_summary <- function(table_number,
                                geo_structure,
@@ -220,6 +230,7 @@ get_census_summary <- function(table_number,
                                geo_units=NULL,
                                selected_years=list_census_years(),
                                reference_total=NULL,
+                               percentage_scale = 1,
                                cache=TRUE,
                                ignore_cache=FALSE){
 
@@ -282,6 +293,8 @@ get_census_summary <- function(table_number,
 
 
     if(!is.null(reference_total)){
+      if(!(percentage_scale %in% c(1,100))) stop("percentage scale must by 1 or 100 (as in 100%)")
+
       total <-  data_i |>
         filter(if_any(c("Attribute"), ~ .x %in% reference_total_filter))  |>
         select(-any_of("Attribute")) |>
@@ -290,7 +303,7 @@ get_census_summary <- function(table_number,
       data_i <- data_i |>
         filter(if_any(c("Attribute"), ~ .x %in% names(attributes))) |>
         left_join(total,by=c("Year","Unit")) |>
-        mutate(Percentage=100*.data$Value/.data$Total)
+        mutate(Percentage=percentage_scale*.data$Value/.data$Total)
 
 
       colnames(data_i)[which(colnames(data_i)=="Total")] <- names(reference_total)[1]

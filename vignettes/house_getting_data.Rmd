@@ -248,22 +248,27 @@ Finally, this function contains two more parameters of interest: *geo_units* fil
 get_census_summary(table_number = "04",
                    attributes = list("60 year old male"=c("Age_years_60_males","Age (Years): 60_males"),
                                      "60 year old female"=c("Age_years_60_males","Age (Years): 60_females")),
-                   geo_units = c("Melbourne","Stonnignton","Yarra"),
+                   geo_units = c("Melbourne","Stonnington","Yarra"),
                    reference_total = list("Total"=c("Total_persons")),
                    geo_structure = "LGA")
-#> # A tibble: 10 × 6
-#>     Year Unit      Attribute          Value  Total Percentage
-#>    <dbl> <chr>     <chr>              <dbl>  <dbl>      <dbl>
-#>  1  2006 Melbourne 60 year old male     306  71380      0.429
-#>  2  2006 Melbourne 60 year old female   234  71380      0.328
-#>  3  2006 Yarra     60 year old male     266  69330      0.384
-#>  4  2006 Yarra     60 year old female   295  69330      0.426
-#>  5  2011 Melbourne 60 year old male     313  93626      0.334
-#>  6  2011 Yarra     60 year old male     332  74090      0.448
-#>  7  2016 Melbourne 60 year old male     379 135959      0.279
-#>  8  2016 Yarra     60 year old male     375  86657      0.433
-#>  9  2021 Melbourne 60 year old male     492 149615      0.329
-#> 10  2021 Yarra     60 year old male     425  90114      0.472
+#> # A tibble: 15 × 6
+#>     Year Unit        Attribute          Value  Total Percentage
+#>    <dbl> <chr>       <chr>              <dbl>  <dbl>      <dbl>
+#>  1  2006 Melbourne   60 year old male     306  71380    0.00429
+#>  2  2006 Melbourne   60 year old female   234  71380    0.00328
+#>  3  2006 Stonnington 60 year old male     473  89882    0.00526
+#>  4  2006 Stonnington 60 year old female   498  89882    0.00554
+#>  5  2006 Yarra       60 year old male     266  69330    0.00384
+#>  6  2006 Yarra       60 year old female   295  69330    0.00426
+#>  7  2011 Melbourne   60 year old male     313  93626    0.00334
+#>  8  2011 Stonnington 60 year old male     431  93145    0.00463
+#>  9  2011 Yarra       60 year old male     332  74090    0.00448
+#> 10  2016 Melbourne   60 year old male     379 135959    0.00279
+#> 11  2016 Stonnington 60 year old male     444 103832    0.00428
+#> 12  2016 Yarra       60 year old male     375  86657    0.00433
+#> 13  2021 Melbourne   60 year old male     492 149615    0.00329
+#> 14  2021 Stonnington 60 year old male     528 104703    0.00504
+#> 15  2021 Yarra       60 year old male     425  90114    0.00472
 ```
 
 

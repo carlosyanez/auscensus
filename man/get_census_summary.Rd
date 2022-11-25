@@ -11,6 +11,7 @@ get_census_summary(
   geo_units = NULL,
   selected_years = list_census_years(),
   reference_total = NULL,
+  percentage_scale = 1,
   cache = TRUE,
   ignore_cache = FALSE
 )
@@ -28,6 +29,8 @@ get_census_summary(
 
 \item{reference_total}{reference total}
 
+\item{percentage_scale}{1 if percentage to be presented in scale 0-1, or 100 to be shown as 0\%-100\%}
+
 \item{cache}{if TRUE, will save the query in the cache (in parquet file) for later use}
 
 \item{ignore_cache}{If TRUE, it will ignore cached files}
@@ -37,5 +40,15 @@ data frame with data from file, filtered by division and election year
 }
 \description{
 Obtain get data from filename
+}
+\examples{
+\dontrun{
+get_census_summary(table_number = "04",
+    attributes = list("60 year old male"=c("Age_years_60_males","Age (Years): 60_males"),
+                      "60 year old female"=c("Age_years_60_males","Age (Years): 60_females")),
+    geo_units = c("Melbourne","Stonnington","Yarra"),
+    reference_total = list("Total"=c("Total_persons")),
+
+}
 }
 \keyword{getdata}
