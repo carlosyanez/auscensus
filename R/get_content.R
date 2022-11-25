@@ -29,16 +29,16 @@ get_census_data <- function(census_table,geo_structure,selected_years=list_censu
 
   #get tables to explore and filter (table number, year)
   table_non_year_cols <- colnames(census_table)[!(colnames(census_table) %in% avail_years)]
-  #print(table_non_year_cols)
+  ##print(table_non_year_cols)
   census_table <- census_table |>
     pivot_longer(-all_of(table_non_year_cols), names_to = "Year",values_to = "flag") |>
     filter(if_any(c("Year"), ~ .x %in% selected_years))
 
-  print(1)
+  #print(1)
   table_stubs  <- get_auscensus_metadata("tables.zip")
-  print(2)
+  #print(2)
   stubs_non_year_cols <- colnames(table_stubs)[!(colnames(table_stubs) %in% avail_years)]
-  print(stubs_non_year_cols)
+  #print(stubs_non_year_cols)
   table_stubs <- table_stubs |>
     pivot_longer(-all_of(stubs_non_year_cols), names_to = "Year",values_to = "initial") |>
     filter(if_any(c("Year"), ~ .x %in% selected_years)) |>
@@ -54,7 +54,7 @@ get_census_data <- function(census_table,geo_structure,selected_years=list_censu
 
   #geo types to filter
   geo_non_year_cols <- colnames(geos)[!(colnames(geos) %in% avail_years)]
-  print(geo_non_year_cols)
+  #print(geo_non_year_cols)
   geo_list    <- geos |>
     pivot_longer(-all_of(geo_non_year_cols), names_to = "Year",values_to = "flag") |>
     distinct(.data$ASGS_Structure) |>
@@ -90,9 +90,9 @@ get_census_data <- function(census_table,geo_structure,selected_years=list_censu
           left_join(content_stubs |> select(-any_of(c("flag","cached_file","identifier"))),
                     by=c("Year","element","geo")) |>
           filter(if_any(c("cache_exists"), ~ .x==FALSE))
-        ##print("first")
-        ##print(content_stubs)
-        ##print(content_data[i,])
+        ###print("first")
+        ###print(content_stubs)
+        ###print(content_data[i,])
       }
       if(!exists("geo_decode")){
         geo_decode    <- get_auscensus_metadata("geo_reverse.zip") |>
@@ -113,8 +113,8 @@ get_census_data <- function(census_table,geo_structure,selected_years=list_censu
       left_join(content_stubs[i,], by=c("geo","Year","element")) |>
       filter(if_any("flag", ~ .x==TRUE))
 
-    ##print("second")
-    print(content_i)
+    ###print("second")
+    #print(content_i)
 
     geo_decode_i <- geo_decode |>
       filter(if_any(c("ASGS_Structure"),~ .x==content_stubs[i,]$geo)) |>

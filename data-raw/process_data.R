@@ -273,9 +273,9 @@ geo <- geo %>%
   distinct() %>%
   mutate(ASGS_Structure = if_else(str_starts(ASGS_Structure,"SA"), ASGS_Structure, str_remove_all(ASGS_Structure,"\\d+")),
          Census_Name=case_when(
-           ASGS_Structure=="CED" & (str_detect(str_to_lower(Census_Name),"no usual") |
+           (str_detect(ASGS_Structure,"CED")|str_detect(ASGS_Structure,"SA")) & (str_detect(str_to_lower(Census_Name),"no usual") |
                                     str_detect(str_to_lower(Census_Name),"offshore")) ~ Census_Name,
-           ASGS_Structure=="CED" ~ str_remove_all(Census_Name,"\\((.*?)\\)") %>%
+           (str_detect(ASGS_Structure,"CED")) ~ str_remove_all(Census_Name,"\\((.*?)\\)") %>%
              str_remove_all(.,"\\(") %>%
              str_remove_all(.,"\\)") %>%
              str_remove_all(.,",(.*?)$"),
@@ -285,9 +285,9 @@ geo <- geo %>%
            ASGS_Structure=="POA" ~ str_remove_all(Census_Name,"[^0-9]+"),
            TRUE ~ str_remove_all(Census_Name,"\\([A-Z]\\)")
          ) %>% str_to_title(.) %>% str_squish(.)
-         ) %>%
+         )# %>%
   #remove older statistical units
-  filter(!(ASGS_Structure %in% c("CCD","SLA","SD")))
+  #filter(!(ASGS_Structure %in% c("CCD","SLA","SD")))
 
 
 #geo_n <- geo %>%count(ASGS_Structure,Census_Name,Year)
@@ -321,18 +321,11 @@ tables <- tables %>%
 
 descriptors <- descriptors %>%
         mutate(DataPackfile=if_else(is.na(DataPackfile),Profiletable,DataPackfile)) %>%
-        distinct()
+        distinct() %>%
+        mutate(Long=str_replace_all(Long,",","_")) %>%
+        mutate(Long=str_to_title(Long))
 
 
-a <-content %>% distinct(geo,element,Year) %>%
-  mutate(initial=TRUE,
-         table   = str_sub(element,2)) %>%
-  select(-element) %>%
-  distinct() %>%
-  pivot_wider(c(table,geo),values_from = initial,names_from = "Year")
-
-
-a  %>% filter
 
 #saving descriptors as-is ----
 save_zip_parquet(geo_key,"geo_key",processed_files_dir)

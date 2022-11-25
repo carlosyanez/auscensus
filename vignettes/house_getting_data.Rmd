@@ -1,0 +1,269 @@
+---
+title: "Auscensus - Getting Data"
+resource_files:
+  - vignetttes/house-preference-flow*.png
+author: "Carlos YANEZ SANTIBANEZ"
+date: "2022-11-25"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Auscensus - Getting Data}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+
+
+Once the data has been imported, the package is ready to pull data from the data packs.
+
+## Figuring out what to retrieve
+
+
+The first  to figure out what data points are going to be retrieved. In order to answer that, the following questions need to be answered:
+
+- Which statistics do I want to pull , i.e. which data point from which table?
+- Which geographical structure do I want  (e.g. SAs, LGAs, electorates)? Do i want data for all of them or just a handful?
+- For which years do I want the data ?
+
+To answer those questions, {auscensus} comes with a family of functions, all starting with *list_*.
+
+To figure out where is the data point to retrieve, the first step to retrieve list of available tables, which will return their code plus the year when they have been published. this can be achieved with *list_census_tables()* 
+
+
+
+```r
+list_census_tables()
+#> # A tibble: 165 × 7
+#>    Number `Table Name`                                                            `Table Population`                   `2021` `2016` `2011` `2006`
+#>    <chr>  <chr>                                                                   <chr>                                <lgl>  <lgl>  <lgl>  <lgl> 
+#>  1 01     Selected Person Characteristics by Sex                                  Persons                              TRUE   TRUE   TRUE   NA    
+#>  2 01     Selected Person Characteristics by Sex (First Release Processing)       Persons                              NA     NA     NA     TRUE  
+#>  3 02     Selected Medians and Averages                                           NA                                   TRUE   TRUE   TRUE   TRUE  
+#>  4 03     Place of Usual Residence by Place of Enumeration on Census Night by Age Persons (excludes overseas visitors) TRUE   NA     NA     NA    
+#>  5 03     Place of Usual Residence on Census Night by Age                         Persons                              NA     TRUE   TRUE   TRUE  
+#>  6 04     Age by Sex                                                              Persons                              TRUE   TRUE   TRUE   TRUE  
+#>  7 05     Registered Marital Status by Age by Sex                                 Persons aged 15 years and over       TRUE   TRUE   TRUE   TRUE  
+#>  8 06     Social Marital Status by Age by Sex                                     Persons aged 15 years and over       TRUE   TRUE   TRUE   TRUE  
+#>  9 07     Indigenous Status by Age by Sex                                         Persons                              TRUE   TRUE   TRUE   TRUE  
+#> 10 08     Ancestry by Country of Birth of Parents                                 Responses and persons                TRUE   TRUE   NA     TRUE  
+#> # … with 155 more rows
+```
+
+This function comes with two in-built filters. The first one allows to filter by table number, whereas the second uses a regular expression to filter the table names
+
+
+
+```r
+list_census_tables("20")
+#> # A tibble: 4 × 7
+#>   Number `Table Name`                                                  `Table Population`             `2021` `2016` `2011` `2006`
+#>   <chr>  <chr>                                                         <chr>                          <lgl>  <lgl>  <lgl>  <lgl> 
+#> 1 20     Count of Selected Long-Term Health Conditions by Age by Sex   Persons                        TRUE   NA     NA     NA    
+#> 2 20     Unpaid Domestic Work:  Number of House by Age by Sex          Persons aged 15 years and over NA     TRUE   NA     NA    
+#> 3 20     Unpaid Domestic Work:  Number of Hours by Age by Sex          Persons aged 15 years and over NA     NA     TRUE   NA    
+#> 4 20     Unpaid Assistance to a Person with a Disability by Age by Sex Persons aged 15 years and over NA     NA     NA     TRUE
+```
+
+
+```r
+list_census_tables(table_name_regex = "[Cc]ountry")
+#> # A tibble: 6 × 7
+#>   Number `Table Name`                                                                    `Table Population`    `2021` `2016` `2006` `2011`
+#>   <chr>  <chr>                                                                           <chr>                 <lgl>  <lgl>  <lgl>  <lgl> 
+#> 1 08     Ancestry by Country of Birth of Parents                                         Responses and persons TRUE   TRUE   TRUE   NA    
+#> 2 09     Country of Birth of Person by Age by Sex                                        Persons               TRUE   TRUE   NA     NA    
+#> 3 09     Country of Birth of Person by Sex                                               Persons               NA     NA     TRUE   TRUE  
+#> 4 10     Country of Birth of Person by Year of Arrival in Australia                      Persons born overseas TRUE   TRUE   TRUE   TRUE  
+#> 5 26     Family Composition and Country of Birth of Parents by Age of Dependent Children Dependent children    NA     TRUE   NA     NA    
+#> 6 30     Family Composition and Country of Birth of Parents by Age of Dependent Children Dependent children    TRUE   NA     NA     NA
+```
+
+Please note that even the table names has changed from year to year, all tables with the same number contain the same data.
+
+Once the table has been selected, *list_census_attributes()* can be used to selected a data point. Since tables can contain many attributes, thus this function also allows to filter the results by a regular expression. For instance, if we pick table *04* (Age by Sex) and want to find the data points for 60 year olds, plus total, we can use the below command.
+
+
+
+```r
+list_census_attributes(number="04",table_name_regex = "60|[Tt]otal")
+#> # A tibble: 15 × 6
+#>    Table Attribute                        `2021` `2016` `2011` `2006`
+#>    <chr> <chr>                            <lgl>  <lgl>  <lgl>  <lgl> 
+#>  1 04    Age_years_60_males               TRUE   TRUE   TRUE   NA    
+#>  2 04    Age_years_60_females             TRUE   TRUE   TRUE   NA    
+#>  3 04    Age_years_60_persons             TRUE   TRUE   TRUE   NA    
+#>  4 04    Age_years_60_64_years_males      TRUE   TRUE   TRUE   NA    
+#>  5 04    Age_years_60_64_years_females    TRUE   TRUE   TRUE   NA    
+#>  6 04    Age_years_60_64_years_persons    TRUE   TRUE   TRUE   NA    
+#>  7 04    Total_males                      TRUE   TRUE   TRUE   TRUE  
+#>  8 04    Total_females                    TRUE   TRUE   TRUE   TRUE  
+#>  9 04    Total_persons                    TRUE   TRUE   TRUE   TRUE  
+#> 10 04    Age (Years): 60_males            NA     NA     NA     TRUE  
+#> 11 04    Age (Years): 60_females          NA     NA     NA     TRUE  
+#> 12 04    Age (Years): 60_persons          NA     NA     NA     TRUE  
+#> 13 04    Age (Years): 60-64 Years_males   NA     NA     NA     TRUE  
+#> 14 04    Age (Years): 60-64 Years_females NA     NA     NA     TRUE  
+#> 15 04    Age (Years): 60-64 Years_persons NA     NA     NA     TRUE
+```
+
+To get which geographical structures are available, *list_census_geo_types()* can help. Once selected an appropriate value, *list_census_geo()* can be used to search for particular divisions. In the example below, we are confirming if data is avaible for three inner-Melbourne Local Government areas.
+
+
+```r
+list_census_geo_types()
+#> # A tibble: 31 × 5
+#>    ASGS_Structure `2021` `2016` `2011` `2006`
+#>    <chr>          <lgl>  <lgl>  <lgl>  <lgl> 
+#>  1 AUS            TRUE   TRUE   TRUE   TRUE  
+#>  2 CD             NA     NA     NA     TRUE  
+#>  3 CED            TRUE   TRUE   TRUE   TRUE  
+#>  4 GCCSA          TRUE   TRUE   TRUE   NA    
+#>  5 IARE           TRUE   TRUE   TRUE   TRUE  
+#>  6 ILOC           TRUE   TRUE   TRUE   TRUE  
+#>  7 IREG           TRUE   TRUE   TRUE   TRUE  
+#>  8 JWSLA          NA     NA     NA     TRUE  
+#>  9 JWSLA_extended NA     NA     NA     TRUE  
+#> 10 LGA            TRUE   TRUE   TRUE   TRUE  
+#> # … with 21 more rows
+```
+
+
+
+```r
+list_census_geo("LGA",geo_name_regex = "[Mm]elbourne|[Ss]tonnington|Yarra")
+#> # A tibble: 5 × 6
+#>   ASGS_Structure Census_Name  `2021` `2016` `2011` `2006`
+#>   <chr>          <chr>        <lgl>  <lgl>  <lgl>  <lgl> 
+#> 1 LGA            Melbourne    TRUE   TRUE   TRUE   TRUE  
+#> 2 LGA            Stonnington  TRUE   TRUE   TRUE   TRUE  
+#> 3 LGA            Yarra        TRUE   TRUE   TRUE   TRUE  
+#> 4 LGA            Yarra Ranges TRUE   TRUE   TRUE   TRUE  
+#> 5 LGA            Yarrabah     TRUE   TRUE   TRUE   TRUE
+```
+
+
+Please note that the above functions only show data for the *available* data packs - if a file has not been imported, its associated year won't be presented in the results.
+
+## Retrieving Census Data
+
+Once the questions have been resolved, it is possible to use {auscensus} to retrieve the data with *get_census_data()*. This function will present the result for each {table, year, geopgrahy} combination as a different element within a list. For example:
+
+
+
+```r
+
+data <- get_census_data(census_table = list_census_tables("04"),
+                        geo_structure = "LGA")
+  
+names(data)   
+#> [1] "2006_LGA_B04" "2011_LGA_B04" "2016_LGA_G04" "2021_LGA_G04"
+```
+
+
+```r
+data$`2006_LGA_B04`
+#> # A tibble: 685 × 309
+#>     Year Unit     Censu…¹ Age (…² Age (…³ Age (…⁴ Age (…⁵ Age (…⁶ Age (…⁷ Age (…⁸ Age (…⁹ Age (…˟ Age (…˟ Age (…˟ Age (…˟ Age (…˟ Age (…˟ Age (…˟ Age (…˟ Age (…˟ Age (…˟
+#>    <dbl> <chr>    <chr>     <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <dbl>
+#>  1  2006 Unincor… LGA893…    2214    2121    4335    2018    1948    3966    2091    1947    4038    2033    1856    3889    1926    1926    3852   10282    9798   20080
+#>  2  2006 No Usua… LGA894…       6       4      10       5       7      12       6       3       9       4       3       7       5       4       9      26      21      47
+#>  3  2006 Albury   LGA100…     337     305     642     313     307     620     267     286     553     309     296     605     298     296     594    1524    1490    3014
+#>  4  2006 Armidal… LGA101…     137     144     281     132     128     260     146     127     273     125     129     254     164     132     296     704     660    1364
+#>  5  2006 Ashfield LGA101…     265     246     511     232     200     432     219     209     428     235     183     418     211     210     421    1162    1048    2210
+#>  6  2006 Auburn   LGA102…     541     562    1103     545     468    1013     510     473     983     457     458     915     463     422     885    2516    2383    4899
+#>  7  2006 Ballina  LGA102…     191     197     388     190     176     366     218     194     412     197     207     404     219     223     442    1015     997    2012
+#>  8  2006 Balrana… LGA103…       8      16      24      28      12      40      19      13      32      16      21      37      16      14      30      87      76     163
+#>  9  2006 Banksto… LGA103…    1331    1240    2571    1337    1239    2576    1286    1241    2527    1367    1215    2582    1257    1195    2452    6578    6130   12708
+#> 10  2006 Bathurs… LGA104…     276     227     503     225     222     447     240     223     463     248     202     450     251     241     492    1240    1115    2355
+#> # … with 675 more rows, 288 more variables: `Age (Years): 5_males` <dbl>, `Age (Years): 5_females` <dbl>, `Age (Years): 5_persons` <dbl>, `Age (Years): 6_males` <dbl>,
+#> #   `Age (Years): 6_females` <dbl>, `Age (Years): 6_persons` <dbl>, `Age (Years): 7_males` <dbl>, `Age (Years): 7_females` <dbl>, `Age (Years): 7_persons` <dbl>,
+#> #   `Age (Years): 8_males` <dbl>, `Age (Years): 8_females` <dbl>, `Age (Years): 8_persons` <dbl>, `Age (Years): 9_males` <dbl>, `Age (Years): 9_females` <dbl>,
+#> #   `Age (Years): 9_persons` <dbl>, `Age (Years): 5-9 Years_males` <dbl>, `Age (Years): 5-9 Years_females` <dbl>, `Age (Years): 5-9 Years_persons` <dbl>,
+#> #   `Age (Years): 10_males` <dbl>, `Age (Years): 10_females` <dbl>, `Age (Years): 10_persons` <dbl>, `Age (Years): 11_males` <dbl>, `Age (Years): 11_females` <dbl>,
+#> #   `Age (Years): 11_persons` <dbl>, `Age (Years): 12_males` <dbl>, `Age (Years): 12_females` <dbl>, `Age (Years): 12_persons` <dbl>, `Age (Years): 13_males` <dbl>,
+#> #   `Age (Years): 13_females` <dbl>, `Age (Years): 13_persons` <dbl>, `Age (Years): 14_males` <dbl>, `Age (Years): 14_females` <dbl>, `Age (Years): 14_persons` <dbl>, …
+```
+
+By default, this command will store each table in a parquet file in the cache by directory. If you want to stop that from happening use the argument *cache=FALSE*. Similarly its default behaivour is to read data from cached files before extracting them from the data pack. If you want to ignore the cache, use *ignore_cache=TRUE*.
+
+
+## Getting-ready to use summaries
+
+Although *get_census_data()*, provides great flexitibilty for data processing, in most cases it is just of interest to get just a table with a limited number of variables for analysis. For this purpose, this package provides *get_census_summary()*. For instance, if we are only interested in getting the numbers for 60 year old men by LGA in the 2021 census (see above), we can use:
+
+
+
+```r
+
+get_census_summary(table_number = "04",
+                   attributes = "Age_years_60_males",
+                   geo_structure = "LGA",
+                   selected_years = "2021")
+#> # A tibble: 565 × 4
+#>     Year Unit              Attribute          Value
+#>    <dbl> <chr>             <chr>              <dbl>
+#>  1  2021 Albury            Age_years_60_males   368
+#>  2  2021 Armidale Regional Age_years_60_males   157
+#>  3  2021 Ballina           Age_years_60_males   325
+#>  4  2021 Balranald         Age_years_60_males    17
+#>  5  2021 Bathurst Regional Age_years_60_males   306
+#>  6  2021 Bayside (Nsw)     Age_years_60_males   854
+#>  7  2021 Bega Valley       Age_years_60_males   332
+#>  8  2021 Bellingen         Age_years_60_males   103
+#>  9  2021 Berrigan          Age_years_60_males    68
+#> 10  2021 Blacktown         Age_years_60_males  1906
+#> # … with 555 more rows
+```
+
+Data point or "attribute" names sometimes change name from Census to Census. For this purpose the *attribute* can be either a vector or strings or a named list, containing all  equivalent attribute names. For instance, to get the number of 60 year men and women across all censuses (all years included by default):
+
+
+```r
+
+get_census_summary(table_number = "04",
+                   attributes = list("60 year old male"=c("Age_years_60_males","Age (Years): 60_males"),
+                                     "60 year old female"=c("Age_years_60_males","Age (Years): 60_females")),
+                   geo_structure = "LGA")
+#> # A tibble: 3,075 × 4
+#>     Year Unit               Attribute          Value
+#>    <dbl> <chr>              <chr>              <dbl>
+#>  1  2006 Unincorporated Act 60 year old male    1702
+#>  2  2006 Unincorporated Act 60 year old female  1588
+#>  3  2006 No Usual Address   60 year old male       3
+#>  4  2006 No Usual Address   60 year old female     3
+#>  5  2006 Albury             60 year old male     229
+#>  6  2006 Albury             60 year old female   217
+#>  7  2006 Armidale Dumaresq  60 year old male     112
+#>  8  2006 Armidale Dumaresq  60 year old female   122
+#>  9  2006 Ashfield           60 year old male     164
+#> 10  2006 Ashfield           60 year old female   157
+#> # … with 3,065 more rows
+```
+
+Finally, this function contains two more parameters of interest: *geo_units* filters the results by given a vector of names; *reference_total* passes the function a vector the names of another attribute which will used as a "total" value to calculate the attributes as percentage of said total value. For instance, if we want to narrow the above results to the LGAs of Melbourne, Stonnington and Yarra, and present the results as a percentage of the total population, we have:
+
+
+```r
+
+get_census_summary(table_number = "04",
+                   attributes = list("60 year old male"=c("Age_years_60_males","Age (Years): 60_males"),
+                                     "60 year old female"=c("Age_years_60_males","Age (Years): 60_females")),
+                   geo_units = c("Melbourne","Stonnignton","Yarra"),
+                   reference_total = list("Total"=c("Total_persons")),
+                   geo_structure = "LGA")
+#> # A tibble: 10 × 6
+#>     Year Unit      Attribute          Value  Total Percentage
+#>    <dbl> <chr>     <chr>              <dbl>  <dbl>      <dbl>
+#>  1  2006 Melbourne 60 year old male     306  71380      0.429
+#>  2  2006 Melbourne 60 year old female   234  71380      0.328
+#>  3  2006 Yarra     60 year old male     266  69330      0.384
+#>  4  2006 Yarra     60 year old female   295  69330      0.426
+#>  5  2011 Melbourne 60 year old male     313  93626      0.334
+#>  6  2011 Yarra     60 year old male     332  74090      0.448
+#>  7  2016 Melbourne 60 year old male     379 135959      0.279
+#>  8  2016 Yarra     60 year old male     375  86657      0.433
+#>  9  2021 Melbourne 60 year old male     492 149615      0.329
+#> 10  2021 Yarra     60 year old male     425  90114      0.472
+```
+
+

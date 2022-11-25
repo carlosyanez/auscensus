@@ -34,3 +34,16 @@ authors:
   Carlos Yáñez Santibáñez:
     href: http://www.carlosyanez.id.au
 
+reference:
+  - title: Lists
+    desc:  Get Lists of divisions, years, parties and polling places
+  - contents:
+    - has_keyword("lists")
+  - title: Get the data
+    desc:  Basic Functions to retrieve data, as presented by the AEC.
+  - contents:
+    - has_keyword("getdata")
+  - title: Manage the cache
+    desc: Import data packs, find the cache, delete files
+  - contents:
+    - has_keyword("helpers")
