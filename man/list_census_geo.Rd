@@ -21,8 +21,8 @@ Get list of available geopgrahies, filterable by type and name.
 }
 \examples{
 \dontrun{
-# Get list of all divisions
-list_census_geo()
+# Get list of all Commonwealth electoral divisions and Local Government Areas that start with "Mel"
+list_census_geo(geo_types=c("CED","LGA"),geo_name_regex="^Mel")
  }
 }
 \keyword{lists}

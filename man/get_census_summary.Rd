@@ -2,7 +2,7 @@
 % Please edit documentation in R/get_content.R
 \name{get_census_summary}
 \alias{get_census_summary}
-\title{Obtain get data from filename}
+\title{Get a particular data point across census}
 \usage{
 get_census_summary(
   table_number,
@@ -21,7 +21,7 @@ get_census_summary(
 
 \item{geo_structure}{vector with strings of geo structures (e.g. SA1,LGA,CED)}
 
-\item{attributes}{attribure}
+\item{attributes}{attribute}
 
 \item{geo_units}{geo units}
 
@@ -39,7 +39,8 @@ get_census_summary(
 data frame with data from file, filtered by division and election year
 }
 \description{
-Obtain get data from filename
+Extracts a particular data point statistics from census data packs, filterable by particular geographical units.
+Provides and option to express values as percentage of another data point.
 }
 \examples{
 \dontrun{

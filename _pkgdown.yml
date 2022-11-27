@@ -27,8 +27,8 @@ home:
   description: Australian Censuses in R.
 repo:
   url:
-    home: https://github.com/carlosyanez/auspol/
-    issues: https://github.com/carlosyanez/auspol/issues/
+    home: https://github.com/carlosyanez/auscensus/
+    issues: https://github.com/carlosyanez/auscensus/issues/
     user: https://github.com/carlosyanez/
 authors:
   Carlos Yáñez Santibáñez:
@@ -36,11 +36,11 @@ authors:
 
 reference:
   - title: Lists
-    desc:  Get Lists of divisions, years, parties and polling places
+    desc:  Get Lists available censuses, tables, geographical structures, data points.
   - contents:
     - has_keyword("lists")
   - title: Get the data
-    desc:  Basic Functions to retrieve data, as presented by the AEC.
+    desc:  Functions to retrieve data.
   - contents:
     - has_keyword("getdata")
   - title: Manage the cache

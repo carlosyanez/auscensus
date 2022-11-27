@@ -66,7 +66,7 @@ census_datapacks <- function(){
 }
 
 #' Helper function to download  data
-#' @param download_dir full path of the directory to donwload the files
+#' @param download_dir full path of the directory to download the files
 #' @importFrom fs file_exists dir_create path
 #' @importFrom utils download.file
 #' @importFrom dplyr filter if_any

@@ -1,6 +1,8 @@
 
 
-#' Obtain get data from filename
+#' Get census data.
+#' @description  This function extracts table files from each data pack (given tables and geo structure), and will collate them together into a list(),
+#'  which it will return. By default it will save the processsed tables in the cache folder (in parquet files), which it will use on subsquent calls.
 #' @return data frame with data from file, filtered by division and election year
 #' @importFrom dplyr filter if_any left_join relocate mutate all_of across distinct pull
 #' @importFrom readr read_csv
@@ -18,6 +20,12 @@
 #' @importFrom rlang .data
 #' @include internal.R
 #' @keywords getdata
+#' @examples \dontrun{
+#' data <- get_census_data(census_table = list_census_tables("04"),
+#'                         geo_structure = "LGA")
+#'
+#' names(data)
+#' }
 #' @export
 get_census_data <- function(census_table,geo_structure,selected_years=list_census_years(),cache=TRUE,ignore_cache=FALSE){
 
@@ -196,7 +204,9 @@ get_census_data <- function(census_table,geo_structure,selected_years=list_censu
 }
 
 
-#' Obtain get data from filename
+#' Get a particular data point across census
+#' @description Extracts a particular data point statistics from census data packs, filterable by particular geographical units.
+#' Provides and option to express values as percentage of another data point.
 #' @return data frame with data from file, filtered by division and election year
 #' @importFrom dplyr select any_of starts_with filter if_any rename left_join mutate bind_rows if_else
 #' @importFrom tibble tibble
@@ -204,7 +214,7 @@ get_census_data <- function(census_table,geo_structure,selected_years=list_censu
 #' @importFrom methods is
 #' @param table_number number of selected table
 #' @param geo_structure vector with strings of geo structures (e.g. SA1,LGA,CED)
-#' @param attributes attribure
+#' @param attributes attribute
 #' @param geo_units geo units
 #' @param selected_years  years to filter
 #' @param reference_total reference total

@@ -87,8 +87,8 @@ list_census_geo_types <- function(){
 #' @keywords lists
 #' @include internal.R
 #' @examples \dontrun{
-#' # Get list of all divisions
-#' list_census_geo()
+#' # Get list of all Commonwealth electoral divisions and Local Government Areas that start with "Mel"
+#' list_census_geo(geo_types=c("CED","LGA"),geo_name_regex="^Mel")
 #'  }
 list_census_geo <- function(geo_types=NULL,
                             geo_names = NULL,

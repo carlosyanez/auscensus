@@ -34,7 +34,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">auscensus</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.1.0000</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -49,7 +49,8 @@
 <li class="active nav-item dropdown">
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
-    <a class="dropdown-item" href="../articles/house_getting_data.html">Auscensus - Getting Data</a>
+    <a class="dropdown-item" href="../articles/getting_data.html">Auscensus - Getting Data</a>
+    <a class="dropdown-item" href="../articles/setup.html">Auscensus - Setup</a>
   </div>
 </li>
       </ul>
@@ -59,7 +60,7 @@
 
       <ul class="navbar-nav">
 <li class="nav-item">
-  <a class="external-link nav-link" href="https://github.com/carlosyanez/auspol/" aria-label="github">
+  <a class="external-link nav-link" href="https://github.com/carlosyanez/auscensus/" aria-label="github">
     <span class="fab fa fab fa-github fa-lg"></span>
      
   </a>
@@ -80,10 +81,10 @@
                         <h4 data-toc-skip class="author">Carlos YANEZ
 SANTIBANEZ</h4>
             
-            <h4 data-toc-skip class="date">2022-11-25</h4>
+            <h4 data-toc-skip class="date">2022-11-28</h4>
       
       
-      <div class="d-none name"><code>house_getting_data.Rmd</code></div>
+      <div class="d-none name"><code>getting_data.Rmd</code></div>
     </div>
 
     
@@ -93,21 +94,21 @@ from the data packs.</p>
 <div class="section level2">
 <h2 id="figuring-out-what-to-retrieve">Figuring out what to retrieve<a class="anchor" aria-label="anchor" href="#figuring-out-what-to-retrieve"></a>
 </h2>
-<p>The first to figure out what data points are going to be retrieved.
-In order to answer that, the following questions need to be
+<p>The first thing to figure out what data points are going to be
+retrieved. In order to answer that, the following questions need to be
 answered:</p>
 <ul>
-<li>Which statistics do I want to pull , i.e. which data point from
-which table?</li>
+<li>Which statistics do I want to pull, i.e. which data point from which
+table?</li>
 <li>Which geographical structure do I want (e.g. SAs, LGAs,
 electorates)? Do i want data for all of them or just a handful?</li>
-<li>For which years do I want the data ?</li>
+<li>For which years do I want the data?</li>
 </ul>
 <p>To answer those questions, {auscensus} comes with a family of
 functions, all starting with <em>list_</em>.</p>
 <p>To figure out where is the data point to retrieve, the first step to
-retrieve list of available tables, which will return their code plus the
-year when they have been published. this can be achieved with
+retrieve a list of available tables, which will return their code plus
+the year when they have been published. this can be achieved with
 <em>list_census_tables()</em></p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/list_census_tables.html">list_census_tables</a></span><span class="op">(</span><span class="op">)</span></span>
@@ -126,7 +127,7 @@ year when they have been published. this can be achieved with
 <span><span class="co">#&gt; 10 08     Ancestry by Country of Birth of Parents                                 Responses and persons                TRUE   TRUE   NA     TRUE  </span></span>
 <span><span class="co">#&gt; # … with 155 more rows</span></span></code></pre></div>
 <p>This function comes with two in-built filters. The first one allows
-to filter by table number, whereas the second uses a regular expression
+filtering by table number, whereas the second uses a regular expression
 to filter the table names</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/list_census_tables.html">list_census_tables</a></span><span class="op">(</span><span class="st">"20"</span><span class="op">)</span></span>
@@ -148,14 +149,14 @@ to filter the table names</p>
 <span><span class="co">#&gt; 4 10     Country of Birth of Person by Year of Arrival in Australia                      Persons born overseas TRUE   TRUE   TRUE   TRUE  </span></span>
 <span><span class="co">#&gt; 5 26     Family Composition and Country of Birth of Parents by Age of Dependent Children Dependent children    NA     TRUE   NA     NA    </span></span>
 <span><span class="co">#&gt; 6 30     Family Composition and Country of Birth of Parents by Age of Dependent Children Dependent children    TRUE   NA     NA     NA</span></span></code></pre></div>
-<p>Please note that even the table names has changed from year to year,
-all tables with the same number contain the same data.</p>
+<p>Please note that even though the table names have changed from year
+to year, all tables with the same number contain the same data.</p>
 <p>Once the table has been selected, <em>list_census_attributes()</em>
-can be used to selected a data point. Since tables can contain many
-attributes, thus this function also allows to filter the results by a
+can be used to select a data point. Since tables can contain many
+attributes, thus this function also allows filtering the results by a
 regular expression. For instance, if we pick table <em>04</em> (Age by
-Sex) and want to find the data points for 60 year olds, plus total, we
-can use the below command.</p>
+Sex) and want to find the data points for 60-year-olds, plus the total,
+we can use the below command.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/list_census_attributes.html">list_census_attributes</a></span><span class="op">(</span>number<span class="op">=</span><span class="st">"04"</span>,table_name_regex <span class="op">=</span> <span class="st">"60|[Tt]otal"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; # A tibble: 15 × 6</span></span>
@@ -179,7 +180,7 @@ can use the below command.</p>
 <p>To get which geographical structures are available,
 <em>list_census_geo_types()</em> can help. Once selected an appropriate
 value, <em>list_census_geo()</em> can be used to search for particular
-divisions. In the example below, we are confirming if data is avaible
+divisions. In the example below, we are confirming if data is available
 for three inner-Melbourne Local Government areas.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/list_census_geo_types.html">list_census_geo_types</a></span><span class="op">(</span><span class="op">)</span></span>
@@ -248,19 +249,19 @@ combination as a different element within a list. For example:</p>
 <span><span class="co">#&gt; #   `Age (Years): 11_persons` &lt;dbl&gt;, `Age (Years): 12_males` &lt;dbl&gt;, `Age (Years): 12_females` &lt;dbl&gt;, `Age (Years): 12_persons` &lt;dbl&gt;, `Age (Years): 13_males` &lt;dbl&gt;,</span></span>
 <span><span class="co">#&gt; #   `Age (Years): 13_females` &lt;dbl&gt;, `Age (Years): 13_persons` &lt;dbl&gt;, `Age (Years): 14_males` &lt;dbl&gt;, `Age (Years): 14_females` &lt;dbl&gt;, `Age (Years): 14_persons` &lt;dbl&gt;, …</span></span></code></pre></div>
 <p>By default, this command will store each table in a parquet file in
-the cache by directory. If you want to stop that from happening use the
-argument <em>cache=FALSE</em>. Similarly its default behaivour is to
+the cache by directory if you want to stop that from happening use the
+argument <em>cache=FALSE</em>. Similarly, its default behaviour is to
 read data from cached files before extracting them from the data pack.
 If you want to ignore the cache, use <em>ignore_cache=TRUE</em>.</p>
 </div>
 <div class="section level2">
-<h2 id="getting-ready-to-use-summaries">Getting-ready to use summaries<a class="anchor" aria-label="anchor" href="#getting-ready-to-use-summaries"></a>
+<h2 id="getting-ready-to-use-summaries">Getting ready to use summaries<a class="anchor" aria-label="anchor" href="#getting-ready-to-use-summaries"></a>
 </h2>
-<p>Although <em>get_census_data()</em>, provides great flexitibilty for
-data processing, in most cases it is just of interest to get just a
+<p>Although <em>get_census_data()</em>, provides great flexibility for
+data processing, in most cases, it is just of interest to get just a
 table with a limited number of variables for analysis. For this purpose,
 this package provides <em>get_census_summary()</em>. For instance, if we
-are only interested in getting the numbers for 60 year old men by LGA in
+are only interested in getting the numbers for 60-year-old men by LGA in
 the 2021 census (see above), we can use:</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
@@ -282,10 +283,10 @@ the 2021 census (see above), we can use:</p>
 <span><span class="co">#&gt;  9  2021 Berrigan          Age_years_60_males    68</span></span>
 <span><span class="co">#&gt; 10  2021 Blacktown         Age_years_60_males  1906</span></span>
 <span><span class="co">#&gt; # … with 555 more rows</span></span></code></pre></div>
-<p>Data point or “attribute” names sometimes change name from Census to
-Census. For this purpose the <em>attribute</em> can be either a vector
+<p>Data point or “attribute” names sometimes change from Census to
+Census. For this purpose, the <em>attribute</em> can be either a vector
 or strings or a named list, containing all equivalent attribute names.
-For instance, to get the number of 60 year men and women across all
+For instance, to get the number of 60-year-old men and women across all
 censuses (all years included by default):</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
@@ -308,10 +309,10 @@ censuses (all years included by default):</p>
 <span><span class="co">#&gt; 10  2006 Ashfield           60 year old female   157</span></span>
 <span><span class="co">#&gt; # … with 3,065 more rows</span></span></code></pre></div>
 <p>Finally, this function contains two more parameters of interest:
-<em>geo_units</em> filters the results by given a vector of names;
-<em>reference_total</em> passes the function a vector the names of
-another attribute which will used as a “total” value to calculate the
-attributes as percentage of said total value. For instance, if we want
+<em>geo_units</em> filters the results by giving a vector of names;
+<em>reference_total</em> passes the function a vector of the names of
+another attribute which will be used as a “total” value to calculate the
+attributes as a percentage of said total value. For instance, if we want
 to narrow the above results to the LGAs of Melbourne, Stonnington and
 Yarra, and present the results as a percentage of the total population,
 we have:</p>

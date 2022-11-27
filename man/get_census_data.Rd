@@ -2,7 +2,7 @@
 % Please edit documentation in R/get_content.R
 \name{get_census_data}
 \alias{get_census_data}
-\title{Obtain get data from filename}
+\title{Get census data.}
 \usage{
 get_census_data(
   census_table,
@@ -27,6 +27,15 @@ get_census_data(
 data frame with data from file, filtered by division and election year
 }
 \description{
-Obtain get data from filename
+This function extracts table files from each data pack (given tables and geo structure), and will collate them together into a list(),
+which it will return. By default it will save the processsed tables in the cache folder (in parquet files), which it will use on subsquent calls.
+}
+\examples{
+\dontrun{
+data <- get_census_data(census_table = list_census_tables("04"),
+                        geo_structure = "LGA")
+
+names(data)
+}
 }
 \keyword{getdata}

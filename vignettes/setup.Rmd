@@ -1,0 +1,50 @@
+---
+title: "Auscensus - Setup"
+author: "Carlos YANEZ SANTIBANEZ"
+date: "2022-11-28"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Auscensus - Setup}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+
+{Auscensus}'s goal is to provide an easy interface to access data from Australian Census data packs. However, each data pack is a large file and thus they have not been included in the package. "Metadata" has been uploaded [here](https://github.com/carlosyanez/auscensus/releases/tag/aux_files) and is retrieved by the package as needed but **data files are not included**. To get things ready for data extraction, follow the below steps.
+
+## Download the data
+
+The first step to get {auscensus} ready to work is to download the census data packs. Although the package contains a function to do so (*data_census_download()*), it is recommended to download the files manually (due to the large size). Data packs come in multiple formats - this package has been designed with specific versions, please download the versions shown below (you can retrieve the links using *census_datapacks()*). You can download only some of the files if you are interested only in a particular census.
+
+
+```r
+census_datapacks()
+#> # A tibble: 4 × 3
+#>   Census url                                                                                                                           type 
+#>    <dbl> <chr>                                                                                                                         <chr>
+#> 1   2021 https://www.abs.gov.au/census/find-census-data/datapacks/download/2021_GCP_all_for_AUS_short-header.zip                       GCP  
+#> 2   2016 https://www.abs.gov.au/census/find-census-data/datapacks/download/2016_GCP_all_for_AUS_short-header.zip                       GCP  
+#> 3   2011 https://www.abs.gov.au/census/find-census-data/datapacks/download/2011_BCP_all_for_AUST_short-header.zip                      BCP  
+#> 4   2006 https://www.abs.gov.au/AUSSTATS/abs@archive.nsf/LookupAttach/2006CensusDataPack_BCPPublication04.11.200/$file/census06bcp.zip BCP
+```
+
+## Cache folder
+
+Upon load, the package will create a folder where it will store all imported, downloaded and cached files. You can find its location by running *find_cache()* or *Sys.getenv("auscensus_cache_dir")*. If you want to use the same cache in different environments (i.e. when using [{renv}](https://rstudio.github.io/renv/index.html)), you can do it via *Sys.setenv()* or *usethis::edit_r_environ()*.
+
+## Importing the data
+
+Once downloaded the data files, you can import them into the cache folder by using *data_census_import()*  - just provide a vector with the full path of the data pack zip files.
+
+## Managing the cache
+
+As mentioned above, the cache will contain:
+
+- Imported data packs
+- Metadata parquet files, used to assist the data retrieval.
+- Cache queries (for easy to use), in parquet format (see more in this [article](articles/getting_data)). 
+
+To keep an eye on the size of the cache, you can use *data_census_info()*
+
+If you want to delete files, you can use *data_census_delete()*. This command will accept a vector with path names (which you can get from *data_census_info()*). If no argument is provided, it will delete all files in the cache.

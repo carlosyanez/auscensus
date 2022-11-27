@@ -3,7 +3,7 @@ title: "Auscensus - Getting Data"
 resource_files:
   - vignetttes/house-preference-flow*.png
 author: "Carlos YANEZ SANTIBANEZ"
-date: "2022-11-25"
+date: "2022-11-28"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Auscensus - Getting Data}
@@ -13,22 +13,19 @@ vignette: >
 
 
 
-
 Once the data has been imported, the package is ready to pull data from the data packs.
 
 ## Figuring out what to retrieve
 
+The first thing to figure out what data points are going to be retrieved. In order to answer that, the following questions need to be answered:
 
-The first  to figure out what data points are going to be retrieved. In order to answer that, the following questions need to be answered:
-
-- Which statistics do I want to pull , i.e. which data point from which table?
+- Which statistics do I want to pull, i.e. which data point from which table?
 - Which geographical structure do I want  (e.g. SAs, LGAs, electorates)? Do i want data for all of them or just a handful?
-- For which years do I want the data ?
+- For which years do I want the data?
 
 To answer those questions, {auscensus} comes with a family of functions, all starting with *list_*.
 
-To figure out where is the data point to retrieve, the first step to retrieve list of available tables, which will return their code plus the year when they have been published. this can be achieved with *list_census_tables()* 
-
+To figure out where is the data point to retrieve, the first step to retrieve a list of available tables, which will return their code plus the year when they have been published. this can be achieved with *list_census_tables()* 
 
 
 ```r
@@ -49,8 +46,7 @@ list_census_tables()
 #> # … with 155 more rows
 ```
 
-This function comes with two in-built filters. The first one allows to filter by table number, whereas the second uses a regular expression to filter the table names
-
+This function comes with two in-built filters. The first one allows filtering by table number, whereas the second uses a regular expression to filter the table names
 
 
 ```r
@@ -78,10 +74,9 @@ list_census_tables(table_name_regex = "[Cc]ountry")
 #> 6 30     Family Composition and Country of Birth of Parents by Age of Dependent Children Dependent children    TRUE   NA     NA     NA
 ```
 
-Please note that even the table names has changed from year to year, all tables with the same number contain the same data.
+Please note that even though the table names have changed from year to year, all tables with the same number contain the same data.
 
-Once the table has been selected, *list_census_attributes()* can be used to selected a data point. Since tables can contain many attributes, thus this function also allows to filter the results by a regular expression. For instance, if we pick table *04* (Age by Sex) and want to find the data points for 60 year olds, plus total, we can use the below command.
-
+Once the table has been selected, *list_census_attributes()* can be used to select a data point. Since tables can contain many attributes, thus this function also allows filtering the results by a regular expression. For instance, if we pick table *04* (Age by Sex) and want to find the data points for 60-year-olds, plus the total, we can use the below command.
 
 
 ```r
@@ -106,7 +101,7 @@ list_census_attributes(number="04",table_name_regex = "60|[Tt]otal")
 #> 15 04    Age (Years): 60-64 Years_persons NA     NA     NA     TRUE
 ```
 
-To get which geographical structures are available, *list_census_geo_types()* can help. Once selected an appropriate value, *list_census_geo()* can be used to search for particular divisions. In the example below, we are confirming if data is avaible for three inner-Melbourne Local Government areas.
+To get which geographical structures are available, *list_census_geo_types()* can help. Once selected an appropriate value, *list_census_geo()* can be used to search for particular divisions. In the example below, we are confirming if data is available for three inner-Melbourne Local Government areas.
 
 
 ```r
@@ -128,7 +123,6 @@ list_census_geo_types()
 ```
 
 
-
 ```r
 list_census_geo("LGA",geo_name_regex = "[Mm]elbourne|[Ss]tonnington|Yarra")
 #> # A tibble: 5 × 6
@@ -141,13 +135,11 @@ list_census_geo("LGA",geo_name_regex = "[Mm]elbourne|[Ss]tonnington|Yarra")
 #> 5 LGA            Yarrabah     TRUE   TRUE   TRUE   TRUE
 ```
 
-
 Please note that the above functions only show data for the *available* data packs - if a file has not been imported, its associated year won't be presented in the results.
 
 ## Retrieving Census Data
 
 Once the questions have been resolved, it is possible to use {auscensus} to retrieve the data with *get_census_data()*. This function will present the result for each {table, year, geopgrahy} combination as a different element within a list. For example:
-
 
 
 ```r
@@ -184,13 +176,11 @@ data$`2006_LGA_B04`
 #> #   `Age (Years): 13_females` <dbl>, `Age (Years): 13_persons` <dbl>, `Age (Years): 14_males` <dbl>, `Age (Years): 14_females` <dbl>, `Age (Years): 14_persons` <dbl>, …
 ```
 
-By default, this command will store each table in a parquet file in the cache by directory. If you want to stop that from happening use the argument *cache=FALSE*. Similarly its default behaivour is to read data from cached files before extracting them from the data pack. If you want to ignore the cache, use *ignore_cache=TRUE*.
+By default, this command will store each table in a parquet file in the cache by directory if you want to stop that from happening use the argument *cache=FALSE*. Similarly, its default behaviour is to read data from cached files before extracting them from the data pack. If you want to ignore the cache, use *ignore_cache=TRUE*.
 
+## Getting ready to use summaries
 
-## Getting-ready to use summaries
-
-Although *get_census_data()*, provides great flexitibilty for data processing, in most cases it is just of interest to get just a table with a limited number of variables for analysis. For this purpose, this package provides *get_census_summary()*. For instance, if we are only interested in getting the numbers for 60 year old men by LGA in the 2021 census (see above), we can use:
-
+Although *get_census_data()*, provides great flexibility for data processing, in most cases, it is just of interest to get just a table with a limited number of variables for analysis. For this purpose, this package provides *get_census_summary()*. For instance, if we are only interested in getting the numbers for 60-year-old men by LGA in the 2021 census (see above), we can use:
 
 
 ```r
@@ -215,7 +205,7 @@ get_census_summary(table_number = "04",
 #> # … with 555 more rows
 ```
 
-Data point or "attribute" names sometimes change name from Census to Census. For this purpose the *attribute* can be either a vector or strings or a named list, containing all  equivalent attribute names. For instance, to get the number of 60 year men and women across all censuses (all years included by default):
+Data point or "attribute" names sometimes change from Census to Census. For this purpose, the *attribute* can be either a vector or strings or a named list, containing all equivalent attribute names. For instance, to get the number of 60-year-old men and women across all censuses (all years included by default):
 
 
 ```r
@@ -240,7 +230,7 @@ get_census_summary(table_number = "04",
 #> # … with 3,065 more rows
 ```
 
-Finally, this function contains two more parameters of interest: *geo_units* filters the results by given a vector of names; *reference_total* passes the function a vector the names of another attribute which will used as a "total" value to calculate the attributes as percentage of said total value. For instance, if we want to narrow the above results to the LGAs of Melbourne, Stonnington and Yarra, and present the results as a percentage of the total population, we have:
+Finally, this function contains two more parameters of interest: *geo_units* filters the results by giving a vector of names; *reference_total* passes the function a vector of the names of another attribute which will be used as a "total" value to calculate the attributes as a percentage of said total value. For instance, if we want to narrow the above results to the LGAs of Melbourne, Stonnington and Yarra, and present the results as a percentage of the total population, we have:
 
 
 ```r
@@ -270,5 +260,3 @@ get_census_summary(table_number = "04",
 #> 14  2021 Stonnington 60 year old male     528 104703    0.00504
 #> 15  2021 Yarra       60 year old male     425  90114    0.00472
 ```
-
-
