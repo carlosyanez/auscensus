@@ -221,6 +221,7 @@ get_census_data <- function(census_table,geo_structure,selected_years=list_censu
 #' @param percentage_scale 1 if percentage to be presented in scale 0-1, or 100 to be shown as 0%-100%
 #' @param cache if TRUE, will save the query in the cache (in parquet file) for later use
 #' @param ignore_cache If TRUE, it will ignore cached files
+#' @param data_source result of get_census_data (will ignore other parameters if this is provided)
 #' @importFrom rlang .data
 #' @include internal.R
 #' @keywords getdata
@@ -234,16 +235,23 @@ get_census_data <- function(census_table,geo_structure,selected_years=list_censu
 #'
 #' }
 #' @export
-get_census_summary <- function(table_number,
-                               geo_structure,
+get_census_summary <- function(table_number=NULL,
+                               geo_structure=NULL,
                                attributes,
                                geo_units=NULL,
                                selected_years=list_census_years(),
                                reference_total=NULL,
                                percentage_scale = 1,
                                cache=TRUE,
-                               ignore_cache=FALSE){
+                               ignore_cache=FALSE,
+                               data_source=NULL){
 
+if(is.null(data_source)){
+
+  census_table <- list_census_tables(number=table_number)
+
+  data_source <- get_census_data(census_table,geo_structure,selected_years,cache,ignore_cache)
+}
 
   data <- tibble()
 
@@ -267,16 +275,15 @@ get_census_summary <- function(table_number,
   }
 
 
-  census_table <- list_census_tables(number=table_number)
 
-  data_source <- get_census_data(census_table,geo_structure,selected_years,cache,ignore_cache)
 
   if(length(data_source)==0)  stop("no data found")
   for(i in 1:length(data_source)){
 
   if(!is.null(data_source[[i]])){
     data_i <-data_source[[i]] |>
-      select(-any_of(starts_with("Census")))
+      select(any_of(c("Year","Unit",attributes_filter,reference_total_filter)))
+
 
     if(!is.null(geo_units)){
       data_i <- data_i |>
@@ -287,11 +294,7 @@ get_census_summary <- function(table_number,
       pivot_longer(-any_of(c("Year","Unit")),names_to="Attribute",values_to="Value")  |>
       filter(if_any(c("Value"), ~ !is.na(.x)))
 
-    if(!is.null(attributes_filter)){
-      data_i <- data_i |>
-        filter(if_any(c("Attribute"),~ .x %in% c(attributes_filter,reference_total_filter)))
 
-    }
     if(is(attributes,"list")){
       for(i in 1:length(attributes)){
 
