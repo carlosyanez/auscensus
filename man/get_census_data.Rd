@@ -9,7 +9,8 @@ get_census_data(
   geo_structure,
   selected_years = list_census_years(),
   cache = TRUE,
-  ignore_cache = FALSE
+  ignore_cache = FALSE,
+  attributes = NULL
 )
 }
 \arguments{
@@ -22,6 +23,8 @@ get_census_data(
 \item{cache}{if TRUE, will save the query in the cache (in parquet file) for later use}
 
 \item{ignore_cache}{If TRUE, it will ignore cached files}
+
+\item{attributes}{If geo_structure, is SA1 or SA2, please provide a list of attributes (columns) - otherwise the function won't load the data.}
 }
 \value{
 data frame with data from file, filtered by division and election year

@@ -5,15 +5,16 @@
 \title{Get a particular data point across census}
 \usage{
 get_census_summary(
-  table_number,
-  geo_structure,
+  table_number = NULL,
+  geo_structure = NULL,
   attributes,
   geo_units = NULL,
   selected_years = list_census_years(),
   reference_total = NULL,
   percentage_scale = 1,
   cache = TRUE,
-  ignore_cache = FALSE
+  ignore_cache = FALSE,
+  data_source = NULL
 )
 }
 \arguments{
@@ -34,6 +35,8 @@ get_census_summary(
 \item{cache}{if TRUE, will save the query in the cache (in parquet file) for later use}
 
 \item{ignore_cache}{If TRUE, it will ignore cached files}
+
+\item{data_source}{result of get_census_data (will ignore other parameters if this is provided)}
 }
 \value{
 data frame with data from file, filtered by division and election year

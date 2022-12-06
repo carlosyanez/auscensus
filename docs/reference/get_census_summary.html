@@ -65,15 +65,16 @@ Provides and option to express values as percentage of another data point.</p>
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">get_census_summary</span><span class="op">(</span></span>
-<span>  <span class="va">table_number</span>,</span>
-<span>  <span class="va">geo_structure</span>,</span>
+<span>  table_number <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  geo_structure <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">attributes</span>,</span>
 <span>  geo_units <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  selected_years <span class="op">=</span> <span class="fu"><a href="list_census_years.html">list_census_years</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  reference_total <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  percentage_scale <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  cache <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  ignore_cache <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  ignore_cache <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  data_source <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -113,6 +114,10 @@ Provides and option to express values as percentage of another data point.</p>
 
 <dt>ignore_cache</dt>
 <dd><p>If TRUE, it will ignore cached files</p></dd>
+
+
+<dt>data_source</dt>
+<dd><p>result of get_census_data (will ignore other parameters if this is provided)</p></dd>
 
 </dl></div>
     <div class="section level2">
