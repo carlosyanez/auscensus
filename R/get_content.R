@@ -2,22 +2,23 @@
 
 #' Get census data.
 #' @description  This function extracts table files from each data pack (given tables and geo structure), and will collate them together into a list(),
-#'  which it will return. By default it will save the processsed tables in the cache folder (in parquet files), which it will use on subsquent calls.
+#'  which it will return. By default it will save the processed tables in the cache folder (in parquet files), which it will use on subsquent calls.
 #' @return data frame with data from file, filtered by division and election year
-#' @importFrom dplyr filter if_any left_join relocate mutate all_of across distinct pull
+#' @importFrom dplyr filter if_any left_join relocate mutate all_of across distinct pull collect
 #' @importFrom readr read_csv
 #' @importFrom tibble tibble
 #' @importFrom stringr str_to_title str_c str_remove str_length
 #' @importFrom zip unzip
+#' @importFrom stats setNames
 #' @importFrom fs path file_delete file_exists
 #' @importFrom tidyr pivot_longer pivot_wider crossing
-#' @importFrom arrow write_parquet read_parquet
+#' @importFrom arrow write_parquet read_parquet open_dataset
 #' @param census_table list of tables, in the format of the output of list_census_tables()
 #' @param geo_structure vector with strings of geo structures (e.g. SA1,LGA,CED)
 #' @param selected_years  years to filter
-#' @param cache if TRUE, will save the query in the cache (in parquet file) for later use
 #' @param ignore_cache If TRUE, it will ignore cached files
 #' @param attributes If geo_structure, is SA1 or SA2, please provide a list of attributes (columns) - otherwise the function won't load the data.
+#' @param collect_data if TRUE (default), will return data, if FALSE , it will return {arrow} bindings to cached files
 #' @importFrom rlang .data
 #' @include internal.R
 #' @keywords getdata
@@ -31,13 +32,13 @@
 get_census_data <- function(census_table,
                             geo_structure,
                             selected_years=list_census_years(),
-                            cache=TRUE,
                             ignore_cache=FALSE,
-                            attributes=NULL){
+                            attributes=NULL,
+                            collect_data=TRUE){
 
   to_filter <- c("SA1","SA2")
 
-  if((geo_structure %in% to_filter) &is.null(attributes)) stop("Please provide attribute list if geo_structure is SA1 or SA2")
+    if((geo_structure %in% to_filter) &is.null(attributes)) stop("Please provide attribute list if geo_structure is SA1 or SA2")
   if(geo_structure %in% to_filter){
     file_suffix <- str_c(attributes,collapse = "_")
   }else{
@@ -52,6 +53,7 @@ get_census_data <- function(census_table,
 
   #get tables to explore and filter (table number, year)
   table_non_year_cols <- colnames(census_table)[!(colnames(census_table) %in% avail_years)]
+
   ##print(table_non_year_cols)
   census_table <- census_table |>
     pivot_longer(-all_of(table_non_year_cols), names_to = "Year",values_to = "flag") |>
@@ -100,22 +102,24 @@ get_census_data <- function(census_table,
   #try to load files from cache, check if they are still current
   for(i in 1:nrow(content_stubs)){
     if(content_stubs[i,]$cache_exists&!ignore_cache){
+        data_i <- open_dataset(content_stubs[i,]$cached_file,
+                               format="parquet")
+        data_index <- length(data) +1
 
-        data_i <- read_parquet(content_stubs[i,]$cached_file)
-        if(!is.null(data_i)){
-          data[[i]]  <- data_i
-          names(data)[i] <- content_stubs[i,]$identifier
+        if(collect_data){
+          data[[data_index]] <- data_i |> collect()
+        }else{
+          data[[data_index]] <- data_i
         }
-    }else{
+        names(data)[[data_index]] <- content_stubs[i,]$identifier
 
+    }else{
       if(!exists("content_data")){
         content_data <- get_auscensus_metadata("content.zip") |>
           left_join(content_stubs |> select(-any_of(c("flag","cached_file","identifier"))),
                     by=c("Year","element","geo")) |>
           filter(if_any(c("cache_exists"), ~ .x==FALSE))
-        ###print("first")
-        ###print(content_stubs)
-        ###print(content_data[i,])
+
       }
       if(!exists("geo_decode")){
         geo_decode    <- get_auscensus_metadata("geo_reverse.zip") |>
@@ -136,9 +140,6 @@ get_census_data <- function(census_table,
       left_join(content_stubs[i,], by=c("geo","Year","element")) |>
       filter(if_any("flag", ~ .x==TRUE))
 
-    ###print("second")
-    #print(content_i)
-
     geo_decode_i <- geo_decode |>
       filter(if_any(c("ASGS_Structure"),~ .x==content_stubs[i,]$geo)) |>
       filter(if_any(c("Year"), ~ .x==content_stubs[i,]$Year)) |>
@@ -151,83 +152,88 @@ get_census_data <- function(census_table,
     if(nrow(content_i)>0){
     #rm(data_j,data_k,j,k)
     for(j in 1:length(content_sub_elements)){
+
       content_j <- content_i |> filter(if_any(c("sub_element"),~.x==content_sub_elements[j]))
       data_j <- NULL
       if(nrow(content_j)>0){
-      for(k in 1:nrow(content_j)){
-        if(!is.na(content_j[k,]$zip)){
-            zip_file <- path(cache_dir,content_j[k,]$zip)
-            filename <- content_j[k,]$filename
-            temp_file <- path(cache_dir,str_extract(filename,"[^/\\\\&\\?]+\\.\\w{3,4}(?=([\\?&].*$|$))"))
 
-            unzip(zipfile = zip_file,files=filename,junkpaths = TRUE,exdir = cache_dir)
-            data_k       <- read_csv(temp_file,col_types = "c")
-            file_delete(temp_file)
+        zip_file <- path(cache_dir,content_j$zip) |> unique()
+        filename <- content_j$filename
+        temp_file <- path(cache_dir,str_extract(filename,"[^/\\\\&\\?]+\\.\\w{3,4}(?=([\\?&].*$|$))"))
+        unzip(zipfile = zip_file,files=filename,junkpaths = TRUE,exdir = cache_dir)
 
-            data_k_col <- tibble("Short"=colnames(data_k)[2:ncol(data_k)]) |>
-              left_join(descriptors |> select(any_of(c("Short","Long"))),
-                        by="Short") |>
-              mutate(across(c("Long"), ~str_to_title(.x)))
+        for(k in 1:nrow(content_j)){
 
-            colnames(data_k)[2:length(colnames(data_k))] <- data_k_col$Long
+        data_k <- open_dataset(
+          sources = temp_file[k],
+          format = "csv")
 
-            if(geo_structure %in% to_filter){
-              data_k_col1 <- colnames(data_k)[1]
-              data_k <- data_k |> select(any_of(data_k_col1),any_of(attributes))
-            }
+        key_col <- data_k$schema$names[1]
 
-            if(ncol(data_k)==1){
-
-              data_k <- NULL
-            }
-
-
-              if(is.null(data_j)){
-                  data_j <- data_k
-              }else{
-                data_j <- bind_rows(data_j,data_k)
-
-              }
+        if(geo_structure %in% to_filter){
+          data_k <- data_k |> select(1,any_of(attributes))
         }
+
+        data_k_colnames <- data_k$schema$names
+        data_k_colnames <- data_k_colnames[2:length(data_k_colnames)]
+
+        data_k_col <- tibble("Short"=data_k_colnames) |>
+          left_join(descriptors |> select(any_of(c("Short","Long"))),
+                    by="Short") |>
+          mutate(across(c("Long"), ~str_to_title(.x)))
+
+         if(is.null(data_j)){
+            data_j <- data_k
+            data_j_colnames <- data_k_colnames
+          }else{
+            data_j <- left_join(data_j,data_k,by=key_col)
+            data_j_colnames <- unique(c(data_j_colnames,data_k_colnames))
+              }
+      }
+
+        descriptors_j <- descriptors |>
+                        filter(if_any(c("Short"), ~ .x %in% data_j_colnames)) |>
+                        select(any_of(c("Short","Long"))) |>
+                        bind_rows(tibble("Short"=key_col,"Long"="Census_Code"))
+
+        naming_key <- setNames(object = descriptors_j$Short, nm = descriptors_j$Long)
+        data_j <- data_j |> rename(any_of(naming_key))
+
+        data_j <- data_j |>
+          left_join(geo_decode_i,by="Census_Code") |>
+          mutate(Year =content_j[1,]$Year )
+
+
+        parquet_file <- content_j[1,]$cached_file
+
+        write_parquet(data_j,parquet_file)
+        file_delete(temp_file)
+
+        data_index <- length(data) +1
+
+        data_j <- open_dataset(parquet_file,
+                               format="parquet"
+                               )
+
+        if(collect){
+          data[[data_index]] <- data_j |> collect()
+        }else{
+          data[[data_index]] <- data_j
+        }
+        names(data)[data_index] <- content_j[1,]$identifier
+
+
       }
       }
 
-      if(is.null(data_i)){
-        data_i <- data_j
-      }else{
-        data_i_key <- colnames(data_i)[1]
-        colnames(data_j)[1] <- data_i_key
-        print("hello ")
-        data_i <- data_i |>
-          left_join(data_j,by=data_i_key)
-
-      }
     }
 
 
 
-    if(!is.null(data_i)){
-
-      colnames(data_i)[1] <- "Census_Code"
-
-      data_i <- data_i |>
-        left_join(geo_decode_i, by="Census_Code") |>
-        relocate("Unit",.before=1) |>
-        mutate(Year=content_stubs[i,]$Year,.before=1)
-
-      if(cache){
-        write_parquet(data_i,path(cache_dir,str_c(content_stubs[i,]$identifier,"_",file_suffix,".parquet")))
-      }
-
-
-      data[[i]] <- data_i
-      names(data)[i] <- content_stubs[i,]$identifier
-    }
-
 
     }
     }
-  }
+
 
   return(data)
 }
@@ -237,20 +243,21 @@ get_census_data <- function(census_table,
 #' @description Extracts a particular data point statistics from census data packs, filterable by particular geographical units.
 #' Provides and option to express values as percentage of another data point.
 #' @return data frame with data from file, filtered by division and election year
-#' @importFrom dplyr select any_of starts_with filter if_any rename left_join mutate bind_rows if_else
+#' @importFrom dplyr select any_of starts_with filter if_any rename left_join mutate bind_rows if_else collect
 #' @importFrom tibble tibble
 #' @importFrom tidyr pivot_longer
 #' @importFrom methods is
 #' @param table_number number of selected table
 #' @param geo_structure vector with strings of geo structures (e.g. SA1,LGA,CED)
 #' @param attributes attribute
-#' @param geo_units geo units
+#' @param geo_unit_names geo unit names
+#' @param geo_unit_codes geo unit codes
 #' @param selected_years  years to filter
 #' @param reference_total reference total
 #' @param percentage_scale 1 if percentage to be presented in scale 0-1, or 100 to be shown as 0%-100%
-#' @param cache if TRUE, will save the query in the cache (in parquet file) for later use
 #' @param ignore_cache If TRUE, it will ignore cached files
 #' @param data_source result of get_census_data (will ignore other parameters if this is provided)
+#' @param data_collected TRUE if data_source is a dataset, FALSE if is  a DB,arrow binding
 #' @importFrom rlang .data
 #' @include internal.R
 #' @keywords getdata
@@ -258,7 +265,7 @@ get_census_data <- function(census_table,
 #' get_census_summary(table_number = "04",
 #'     attributes = list("60 year old male"=c("Age_years_60_males","Age (Years): 60_males"),
 #'                       "60 year old female"=c("Age_years_60_males","Age (Years): 60_females")),
-#'     geo_units = c("Melbourne","Stonnington","Yarra"),
+#'     geo_unit_names = c("Melbourne","Stonnington","Yarra"),
 #'     reference_total = list("Total"=c("Total_persons")),
 #      geo_structure = "LGA")
 #'
@@ -267,13 +274,14 @@ get_census_data <- function(census_table,
 get_census_summary <- function(table_number=NULL,
                                geo_structure=NULL,
                                attributes,
-                               geo_units=NULL,
+                               geo_unit_names=NULL,
+                               geo_unit_codes=NULL,
                                selected_years=list_census_years(),
                                reference_total=NULL,
                                percentage_scale = 1,
-                               cache=TRUE,
                                ignore_cache=FALSE,
-                               data_source=NULL){
+                               data_source=NULL,
+                               data_collected=FALSE){
 
 
   data <- tibble()
@@ -297,7 +305,6 @@ get_census_summary <- function(table_number=NULL,
     reference_total        <- NULL
   }
 
-
   if(is.null(data_source)){
 
     census_table <- list_census_tables(number=table_number)
@@ -307,28 +314,34 @@ get_census_summary <- function(table_number=NULL,
     data_source <- get_census_data(census_table,
                                    geo_structure,
                                    selected_years,
-                                   cache,
                                    ignore_cache,
-                                   attributes = attr)
+                                   attributes = attr,
+                                   collect_data =  FALSE)
+    data_collected <- FALSE
   }
-
-
 
   if(length(data_source)==0)  stop("no data found")
   for(i in 1:length(data_source)){
-
   if(!is.null(data_source[[i]])){
-    data_i <-data_source[[i]] |>
-      select(any_of(c("Year","Unit",attributes_filter,reference_total_filter)))
+    data_i <- data_source[[i]] |>
+                select(any_of(c("Census_Code","Unit","Year",attr)))
 
-
-    if(!is.null(geo_units)){
+    if(!is.null(geo_unit_names)){
       data_i <- data_i |>
-        filter(if_any(c("Unit"), ~ .x %in% geo_units))
+        filter(if_any(c("Unit"), ~ .x %in% geo_unit_names))
     }
 
+    if(!is.null(geo_unit_codes)){
+      data_i <- data_i |>
+        filter(if_any(c("Census_Code"), ~ .x %in% geo_unit_codes))
+    }
+
+    if(!data_collected){
+      data_i <- data_i |> collect()
+      }
+
     data_i <- data_i |>
-      pivot_longer(-any_of(c("Year","Unit")),names_to="Attribute",values_to="Value")  |>
+      pivot_longer(-any_of(c("Year","Unit","Census_Code")),names_to="Attribute",values_to="Value")  |>
       filter(if_any(c("Value"), ~ !is.na(.x)))
 
 
@@ -352,7 +365,7 @@ get_census_summary <- function(table_number=NULL,
 
       data_i <- data_i |>
         filter(if_any(c("Attribute"), ~ .x %in% names(attributes))) |>
-        left_join(total,by=c("Year","Unit")) |>
+        left_join(total,by=c("Year","Unit","Census_Code")) |>
         mutate(Percentage=percentage_scale*.data$Value/.data$Total)
 
 

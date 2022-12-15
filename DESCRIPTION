@@ -23,6 +23,7 @@ Imports:
     piggyback,
     readr,
     rlang,
+    stats,
     stringr,
     tibble,
     tidyr,

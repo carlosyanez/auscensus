@@ -68,13 +68,14 @@ Provides and option to express values as percentage of another data point.</p>
 <span>  table_number <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  geo_structure <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">attributes</span>,</span>
-<span>  geo_units <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  geo_unit_names <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  geo_unit_codes <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  selected_years <span class="op">=</span> <span class="fu"><a href="list_census_years.html">list_census_years</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  reference_total <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  percentage_scale <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  cache <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  ignore_cache <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  data_source <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  data_source <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  data_collected <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -92,8 +93,12 @@ Provides and option to express values as percentage of another data point.</p>
 <dd><p>attribute</p></dd>
 
 
-<dt>geo_units</dt>
-<dd><p>geo units</p></dd>
+<dt>geo_unit_names</dt>
+<dd><p>geo unit names</p></dd>
+
+
+<dt>geo_unit_codes</dt>
+<dd><p>geo unit codes</p></dd>
 
 
 <dt>selected_years</dt>
@@ -108,16 +113,16 @@ Provides and option to express values as percentage of another data point.</p>
 <dd><p>1 if percentage to be presented in scale 0-1, or 100 to be shown as 0%-100%</p></dd>
 
 
-<dt>cache</dt>
-<dd><p>if TRUE, will save the query in the cache (in parquet file) for later use</p></dd>
-
-
 <dt>ignore_cache</dt>
 <dd><p>If TRUE, it will ignore cached files</p></dd>
 
 
 <dt>data_source</dt>
 <dd><p>result of get_census_data (will ignore other parameters if this is provided)</p></dd>
+
+
+<dt>data_collected</dt>
+<dd><p>TRUE if data_source is a dataset, FALSE if is  a DB,arrow binding</p></dd>
 
 </dl></div>
     <div class="section level2">

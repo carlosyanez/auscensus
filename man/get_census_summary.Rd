@@ -8,13 +8,14 @@ get_census_summary(
   table_number = NULL,
   geo_structure = NULL,
   attributes,
-  geo_units = NULL,
+  geo_unit_names = NULL,
+  geo_unit_codes = NULL,
   selected_years = list_census_years(),
   reference_total = NULL,
   percentage_scale = 1,
-  cache = TRUE,
   ignore_cache = FALSE,
-  data_source = NULL
+  data_source = NULL,
+  data_collected = FALSE
 )
 }
 \arguments{
@@ -24,7 +25,9 @@ get_census_summary(
 
 \item{attributes}{attribute}
 
-\item{geo_units}{geo units}
+\item{geo_unit_names}{geo unit names}
+
+\item{geo_unit_codes}{geo unit codes}
 
 \item{selected_years}{years to filter}
 
@@ -32,11 +35,11 @@ get_census_summary(
 
 \item{percentage_scale}{1 if percentage to be presented in scale 0-1, or 100 to be shown as 0\%-100\%}
 
-\item{cache}{if TRUE, will save the query in the cache (in parquet file) for later use}
-
 \item{ignore_cache}{If TRUE, it will ignore cached files}
 
 \item{data_source}{result of get_census_data (will ignore other parameters if this is provided)}
+
+\item{data_collected}{TRUE if data_source is a dataset, FALSE if is  a DB,arrow binding}
 }
 \value{
 data frame with data from file, filtered by division and election year
@@ -50,7 +53,7 @@ Provides and option to express values as percentage of another data point.
 get_census_summary(table_number = "04",
     attributes = list("60 year old male"=c("Age_years_60_males","Age (Years): 60_males"),
                       "60 year old female"=c("Age_years_60_males","Age (Years): 60_females")),
-    geo_units = c("Melbourne","Stonnington","Yarra"),
+    geo_unit_names = c("Melbourne","Stonnington","Yarra"),
     reference_total = list("Total"=c("Total_persons")),
 
 }

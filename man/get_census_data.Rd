@@ -8,9 +8,9 @@ get_census_data(
   census_table,
   geo_structure,
   selected_years = list_census_years(),
-  cache = TRUE,
   ignore_cache = FALSE,
-  attributes = NULL
+  attributes = NULL,
+  collect_data = TRUE
 )
 }
 \arguments{
@@ -20,18 +20,18 @@ get_census_data(
 
 \item{selected_years}{years to filter}
 
-\item{cache}{if TRUE, will save the query in the cache (in parquet file) for later use}
-
 \item{ignore_cache}{If TRUE, it will ignore cached files}
 
 \item{attributes}{If geo_structure, is SA1 or SA2, please provide a list of attributes (columns) - otherwise the function won't load the data.}
+
+\item{collect_data}{if TRUE (default), will return data, if FALSE , it will return {arrow} bindings to cached files}
 }
 \value{
 data frame with data from file, filtered by division and election year
 }
 \description{
 This function extracts table files from each data pack (given tables and geo structure), and will collate them together into a list(),
-which it will return. By default it will save the processsed tables in the cache folder (in parquet files), which it will use on subsquent calls.
+which it will return. By default it will save the processed tables in the cache folder (in parquet files), which it will use on subsquent calls.
 }
 \examples{
 \dontrun{
