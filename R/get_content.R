@@ -149,6 +149,11 @@ get_census_data <- function(census_table,
 
     content_sub_elements <- unique(content_i$sub_element)
 
+    attributes_short <- descriptors |>
+                        filter(if_any(Long) %in% attributes)
+    attributes_short <- attributes_short$Short
+
+
     if(nrow(content_i)>0){
     #rm(data_j,data_k,j,k)
     for(j in 1:length(content_sub_elements)){
@@ -171,11 +176,12 @@ get_census_data <- function(census_table,
         key_col <- data_k$schema$names[1]
 
         if(geo_structure %in% to_filter){
-          data_k <- data_k |> select(1,any_of(attributes))
-        }
-
+          data_k_colnames <- attributes_short
+          data_k <- data_k |> select(any_of(c(key_col,data_k_colnames)))
+        }else{
         data_k_colnames <- data_k$schema$names
-        data_k_colnames <- data_k_colnames[2:length(data_k_colnames)]
+        data_k_colnames <- data_k_colnames[data_k_colnames!=key_col]
+        }
 
         data_k_col <- tibble("Short"=data_k_colnames) |>
           left_join(descriptors |> select(any_of(c("Short","Long"))),
@@ -197,7 +203,9 @@ get_census_data <- function(census_table,
                         bind_rows(tibble("Short"=key_col,"Long"="Census_Code"))
 
         naming_key <- setNames(object = descriptors_j$Short, nm = descriptors_j$Long)
-        data_j <- data_j |> rename(any_of(naming_key))
+        data_j <- data_j |>
+                  rename(any_of(naming_key)) |>
+                  mutate(across(c("Census_Code"),~as.character(.x)))
 
         data_j <- data_j |>
           left_join(geo_decode_i,by="Census_Code") |>
