@@ -4,7 +4,7 @@
 #' @description  This function extracts table files from each data pack (given tables and geo structure), and will collate them together into a list(),
 #'  which it will return. By default it will save the processed tables in the cache folder (in parquet files), which it will use on subsquent calls.
 #' @return data frame with data from file, filtered by division and election year
-#' @importFrom dplyr filter if_any left_join relocate mutate all_of across distinct pull collect
+#' @importFrom dplyr filter if_any left_join relocate mutate all_of across distinct pull collect across
 #' @importFrom readr read_csv
 #' @importFrom tibble tibble
 #' @importFrom stringr str_to_title str_c str_remove str_length
