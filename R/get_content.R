@@ -289,7 +289,8 @@ get_census_summary <- function(table_number=NULL,
                                percentage_scale = 1,
                                ignore_cache=FALSE,
                                data_source=NULL,
-                               data_collected=FALSE){
+                               data_collected=FALSE,
+                               census_table=NULL){
 
 
   data <- tibble()
@@ -315,7 +316,9 @@ get_census_summary <- function(table_number=NULL,
 
   if(is.null(data_source)){
 
-    census_table <- list_census_tables(number=table_number)
+    if(is.null(census_table)){
+      census_table <- list_census_tables(number=table_number)
+    }
 
     attr <- unique(c(attributes_filter,reference_total_filter))
 
