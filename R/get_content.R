@@ -358,13 +358,19 @@ get_census_summary <- function(table_number=NULL,
 
 
     if(is(attributes,"list")){
-      for(i in 1:length(attributes)){
+      for(j in 1:length(attributes)){
 
         data_i <- data_i |>
-          mutate(across(c("Attribute"), ~ if_else(.x %in% attributes[[i]], names(attributes)[i],.x)))
+          mutate(across(c("Attribute"), ~ if_else(.x %in% attributes[[j]], names(attributes)[j],.x)))
 
       }
     }
+
+    # aggregate by same attribute, year, unit, census_code
+
+    data_i <- data_i |>
+      group_by(across(c("Census_Code","Unit","Year","Attribute"))) |>
+      summarise(across(c("Value"), ~ sum(.x, na.rm=TRUE)),.groups="drop")
 
 
     if(!is.null(reference_total)){
