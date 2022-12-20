@@ -15,7 +15,8 @@ get_census_summary(
   percentage_scale = 1,
   ignore_cache = FALSE,
   data_source = NULL,
-  data_collected = FALSE
+  data_collected = FALSE,
+  census_table = NULL
 )
 }
 \arguments{
@@ -40,6 +41,8 @@ get_census_summary(
 \item{data_source}{result of get_census_data (will ignore other parameters if this is provided)}
 
 \item{data_collected}{TRUE if data_source is a dataset, FALSE if is  a DB,arrow binding}
+
+\item{census_table}{output of list_census_table()}
 }
 \value{
 data frame with data from file, filtered by division and election year

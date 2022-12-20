@@ -150,7 +150,7 @@ get_census_data <- function(census_table,
     content_sub_elements <- unique(content_i$sub_element)
 
     attributes_short <- descriptors |>
-                        filter(if_any(Long) %in% attributes)
+                        filter(if_any("Long") %in% attributes)
     attributes_short <- attributes_short$Short
 
 
@@ -266,6 +266,7 @@ get_census_data <- function(census_table,
 #' @param ignore_cache If TRUE, it will ignore cached files
 #' @param data_source result of get_census_data (will ignore other parameters if this is provided)
 #' @param data_collected TRUE if data_source is a dataset, FALSE if is  a DB,arrow binding
+#' @param census_table output of list_census_table()
 #' @importFrom rlang .data
 #' @include internal.R
 #' @keywords getdata
