@@ -223,7 +223,7 @@ get_census_data <- function(census_table,
                                format="parquet"
                                )
 
-        if(collect){
+        if(collect_data){
           data[[data_index]] <- data_j |> collect()
         }else{
           data[[data_index]] <- data_j
