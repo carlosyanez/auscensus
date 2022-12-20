@@ -10,7 +10,7 @@
 #' @importFrom stringr str_to_title str_c str_remove str_length
 #' @importFrom zip unzip
 #' @importFrom stats setNames
-#' @importFrom fs path file_delete file_exists
+#' @importFrom fs path file_exists
 #' @importFrom tidyr pivot_longer pivot_wider crossing
 #' @importFrom arrow write_parquet read_parquet open_dataset
 #' @param census_table list of tables, in the format of the output of list_census_tables()
@@ -215,7 +215,7 @@ get_census_data <- function(census_table,
         parquet_file <- content_j[1,]$cached_file
 
         write_parquet(data_j,parquet_file)
-        file_delete(temp_file)
+        #file_delete(temp_file)
 
         data_index <- length(data) +1
 
