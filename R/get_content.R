@@ -159,7 +159,11 @@ get_census_data <- function(census_table,
     zip_file <- path(cache_dir,content_i$zip) |> unique()
     filename <- content_i$filename
     temp_file <- path(cache_dir,str_extract(filename,"[^/\\\\&\\?]+\\.\\w{3,4}(?=([\\?&].*$|$))"))
-    unzip(zipfile = zip_file,files=filename,junkpaths = TRUE,exdir = cache_dir)
+
+    tryCatch(unzip(zipfile = zip_file,files=filename,junkpaths = TRUE,exdir = cache_dir),
+             error=function(e){cat("ERROR :",conditionMessage(e), "\n")
+                               stop(str_c("zip: ",zipfile,"file: ",filename))})
+
 
     data_j <- open_dataset(temp_file,
                            format="csv",
