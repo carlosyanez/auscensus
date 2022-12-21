@@ -179,7 +179,8 @@ find_census_cache<- function(){
 #' @returns nothing
 #' @keywords helpers
 remove_census_cache_csv <- function(){
-  cache_dir <- Sys.getenv('auscensus_cache_dir')
+
+  cache_dir <- find_census_cache()
 
   files <- dir_ls(cache_dir)
   files <- files[str_detect(files,"\\.csv")]
