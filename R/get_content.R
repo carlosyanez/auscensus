@@ -58,7 +58,8 @@ get_census_data <- function(census_table,
   ##print(table_non_year_cols)
   census_table <- census_table |>
     pivot_longer(-all_of(table_non_year_cols), names_to = "Year",values_to = "flag") |>
-    filter(if_any(c("Year"), ~ .x %in% selected_years))
+    filter(if_any(c("Year"), ~ .x %in% selected_years)) |>
+    filter(if_any(c("flag"), ~ .x==TRUE))
 
   #print(1)
   table_stubs  <- get_auscensus_metadata("tables.zip")
@@ -144,6 +145,10 @@ get_census_data <- function(census_table,
       select(-any_of(c("flag"))) |>
       left_join(content_stubs[i,], by=c("geo","Year","element")) |>
       filter(if_any("flag", ~ .x==TRUE))
+
+    if(nrow(content_i)==0){
+      message("no data for year ",content_stubs[i,]$Year)
+    }else{
 
     geo_decode_i <- geo_decode |>
       filter(if_any(c("ASGS_Structure"),~ .x== geo_struct)) |>
@@ -237,7 +242,7 @@ get_census_data <- function(census_table,
           data[[data_index]] <- data_i
         }
     names(data)[data_index] <- content_i[1,]$identifier
-
+    }
 
       }
   }
