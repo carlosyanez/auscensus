@@ -36,6 +36,9 @@ get_census_data <- function(census_table,
                             attributes=NULL,
                             collect_data=TRUE){
 
+  tryCatch(remove_census_cache_csv(),
+           error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
+
   to_filter <- c("SA1","SA2")
 
     if((geo_structure %in% to_filter) &is.null(attributes)) stop("Please provide attribute list if geo_structure is SA1 or SA2")
