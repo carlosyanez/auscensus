@@ -38,13 +38,6 @@ get_census_data <- function(census_table,
   tryCatch(remove_census_cache_csv(),
            error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
 
-  #to_filter <- c("SA1","SA2")
-  #  if((geo_structure %in% to_filter) &is.null(attribute)) stop("Please provide attribute list if geo_structure is SA1 or SA2")
-  #if(geo_structure %in% to_filter){
-  #  file_suffix <- str_c(attribute,collapse = "_")
-  #}else{
-    file_suffix <- ""
-  #}
 
   if(str_detect(geo_structure,"_")){
     geo_struct <- str_extract(geo_structure,"(.+?)(?=_)")
@@ -97,7 +90,7 @@ get_census_data <- function(census_table,
   #create content stubs
   content_stubs <- crossing(tibble(geo=geo_structure),table_stubs) |>
     mutate(identifier =str_c(.data$Year,"_",.data$geo,"_",.data$element),
-           cached_file=path(cache_dir,str_c(.data$identifier,"_",file_suffix)),
+           cached_file=path(cache_dir,str_c(.data$identifier)),
            cache_exists=file_exists(.data$cached_file))
 
 
@@ -127,9 +120,10 @@ get_census_data <- function(census_table,
     }else{
       if(!exists("content_data")){
         content_data <- get_auscensus_metadata("content.zip") |>
-          left_join(content_stubs |> select(-any_of(c("flag","cached_file","identifier"))),
+          left_join(content_stubs |> select(-any_of(c("flag","cached_file","identifier"))) |> mutate(c_flag=TRUE),
                     by=c("Year","element","geo")) |>
-          filter(if_any(c("cache_exists"), ~ !is.na(.x)))
+          filter(if_any(c("c_flag"), ~ .x==TRUE)) |>
+          select(-any_of("c_flag"))
 
       }
       if(!exists("geo_decode")){
@@ -161,8 +155,9 @@ get_census_data <- function(census_table,
     temp_file <- path(cache_dir,str_extract(filename,"[^/\\\\&\\?]+\\.\\w{3,4}(?=([\\?&].*$|$))"))
 
     tryCatch(unzip(zipfile = zip_file,files=filename,junkpaths = TRUE,exdir = cache_dir),
-             error=function(e){cat("ERROR :",conditionMessage(e), "\n")
-                               stop(str_c("zip: ",zipfile,"file: ",filename))})
+             error=function(e){cat("ERROR :",conditionMessage(e), "\n")},
+             finally=str_c("zip: ",zip_file," \n file: ",filename)
+              )
 
 
     data_j <- open_dataset(temp_file,
