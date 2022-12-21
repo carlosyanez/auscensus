@@ -152,7 +152,7 @@ get_census_data <- function(census_table,
       filter(if_any("flag", ~ .x==TRUE))
 
     geo_decode_i <- geo_decode |>
-      filter(if_any(c("ASGS_Structure"),~ .x== str_extract(content_stubs[i,]$geo,"(.+?)(?=_)"))) |>
+      filter(if_any(c("ASGS_Structure"),~ .x== geo_struct)) |>
       filter(if_any(c("Year"), ~ .x==content_stubs[i,]$Year)) |>
       select(-any_of(c("ASGS_Structure","Year")))
 
@@ -179,11 +179,11 @@ get_census_data <- function(census_table,
     message(str_c(n_rows," rows and ",n_cols," columns. Splitting in ",split," chunks."))
     units <- units |>
               mutate(split=ntile(x = row_number(), split)) |>
-              mutate(across(c(key_col), ~ as.character(.x)))
+              mutate(across(any_of(c(key_col)), ~ as.character(.x)))
 
     iterations <- unique(units$split)
 
-    geo_decode_u  <- geo_decode_i |> filter(if_any(any_of("Census_Code"), ~ .x %in% units))
+    geo_decode_u  <- geo_decode_i |> filter(if_any(any_of("Census_Code"), ~ .x %in% (units |> select(key_col) |> pull())))
     decode_key <- as.vector("Census_Code")
     names(decode_key) <- key_col
     parquet_file <- content_i[1,]$cached_file
