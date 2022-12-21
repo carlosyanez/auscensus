@@ -126,6 +126,7 @@ data_census_delete <- function(file=NULL){
 #' @returns nothing
 #' @importFrom stringr str_extract str_detect str_remove str_c
 #' @importFrom dplyr filter
+#' @importFrom fs path
 #' @importFrom zip zip_list unzip
 #' @param file file to import to the cache
 #' @export
@@ -133,7 +134,7 @@ data_census_delete <- function(file=NULL){
 data_census_import <- function(file){
   cache_dir <- Sys.getenv('auscensus_cache_dir')
 
-  filename <- str_extract(file,"([^/\\]+)$")
+  filename <- str_extract(file,"(?<=/)[^/]+$")
   cached_file <- path(cache_dir,filename)
   year_prefix <- str_extract(file,"[0-9]{4}")
 
