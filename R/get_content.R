@@ -215,7 +215,8 @@ get_census_data <- function(census_table,
         parquet_file <- content_j[1,]$cached_file
 
         write_parquet(data_j,parquet_file)
-        #file_delete(temp_file)
+        tryCatch(file_delete(temp_file),
+                 error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
 
         data_index <- length(data) +1
 
