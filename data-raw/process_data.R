@@ -223,6 +223,16 @@ content_2006 <- bind_rows(zip_content %>% select(filename,zipped),
   mutate(Year=as.numeric(Year)) %>%
   mutate(sub_element = str_extract(filename,"[a-zA-Z]{1}[0-9]{2,}(_)?[a-zA-Z]{1}"))
 
+#correct elements and subelements
+content_2006 <-content_2006 |>
+  mutate(element=str_extract(content_2006$filename, "_B(.+?)(?=\\.csv)"),
+         element=str_remove(element,"^_")) |>
+  mutate(sub_element= case_when(
+    str_detect(element,"_[A-z]{1}") ~ element,
+    TRUE ~ "-"
+  )) |>
+  naniar::replace_with_na(list(sub_element="-")) |>
+  mutate(element=str_remove(element,"_[A-z]{1}"))
 
 #merge into main elements -----
 colnames(content)

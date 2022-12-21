@@ -9,7 +9,6 @@ get_census_data(
   geo_structure,
   selected_years = list_census_years(),
   ignore_cache = FALSE,
-  attributes = NULL,
   collect_data = TRUE
 )
 }
@@ -21,8 +20,6 @@ get_census_data(
 \item{selected_years}{years to filter}
 
 \item{ignore_cache}{If TRUE, it will ignore cached files}
-
-\item{attributes}{If geo_structure, is SA1 or SA2, please provide a list of attributes (columns) - otherwise the function won't load the data.}
 
 \item{collect_data}{if TRUE (default), will return data, if FALSE , it will return {arrow} bindings to cached files}
 }
