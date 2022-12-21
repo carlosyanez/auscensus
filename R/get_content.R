@@ -17,7 +17,7 @@
 #' @param geo_structure vector with strings of geo structures (e.g. SA1,LGA,CED)
 #' @param selected_years  years to filter
 #' @param ignore_cache If TRUE, it will ignore cached files
-#' @param collect_data if TRUE (default), will return data, if FALSE , it will return {arrow} bindings to cached files
+#' @param collect_data if TRUE  will return data. if FALSE (default) , it will return {arrow} bindings to cached files
 #' @importFrom rlang .data
 #' @include internal.R
 #' @keywords getdata
@@ -33,7 +33,7 @@ get_census_data <- function(census_table,
                             selected_years=list_census_years(),
                             ignore_cache=FALSE,
                             #attribute=NULL,
-                            collect_data=TRUE){
+                            collect_data=FALSE){
 
   tryCatch(remove_census_cache_csv(),
            error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
@@ -46,11 +46,18 @@ get_census_data <- function(census_table,
     file_suffix <- ""
   #}
 
+  if(str_detect(geo_structure,"_")){
+    geo_struct <- str_extract(geo_structure,"(.+?)(?=_)")
+  }else{
+    geo_struct <- geo_structure
+  }
+
+
   #basic data
   avail_years  <- list_census_years()
   all_years    <- list_census_years(mode="all")
   cache_dir    <- find_census_cache()
-  geos         <- list_census_geo(geo_types = str_extract(geo_structure,"(.+?)(?=_)"))
+  geos         <- list_census_geo(geo_types = geo_struct)
 
   #get tables to explore and filter (table number, year)
   table_non_year_cols <- colnames(census_table)[!(colnames(census_table) %in% avail_years)]
@@ -127,7 +134,7 @@ get_census_data <- function(census_table,
       }
       if(!exists("geo_decode")){
         geo_decode    <- get_auscensus_metadata("geo_reverse.zip") |>
-          filter(if_any(c("ASGS_Structure"), ~ .x %in% str_extract(geo_structure,"(.+?)(?=_)"))) |>
+          filter(if_any(c("ASGS_Structure"), ~ .x %in% geo_struct)) |>
           pivot_longer(-any_of(c("ASGS_Structure","Census_Code")), names_to="Year",values_to="Unit") |>
           filter(if_any(c("Year"), ~ .x %in% avail_years))
       }
@@ -167,10 +174,12 @@ get_census_data <- function(census_table,
     n_cols <- length(data_j$schema$names)
     n_rows <- nrow(units)
 
-    chunk_size <- 2*10^5
+    chunk_size <- 5*10^5
     split <- ceiling(n_rows*n_cols/chunk_size)
-
-    units <- units |> mutate(split=ntile(x = row_number(), split))
+    message(str_c(n_rows," rows and ",n_cols," columns. Splitting in ",split," chunks."))
+    units <- units |>
+              mutate(split=ntile(x = row_number(), split)) |>
+              mutate(across(c(key_col), ~ as.character(.x)))
 
     iterations <- unique(units$split)
 
@@ -182,6 +191,7 @@ get_census_data <- function(census_table,
     for(iter in iterations){
 
       data_u <- data_j |>
+        mutate(across(c(key_col), ~ as.character(.x))) |>
         left_join(units,by=key_col) |>
         filter(if_any(any_of(c("split")),~ .x==iter)) |>
         collect() |>
@@ -209,8 +219,6 @@ get_census_data <- function(census_table,
                     format="parquet",
                     existing_data_behavior="delete_matching",
                     partitioning="split")
-
-      data_i <- bind_rows(data_i,data_u)
     }
 
     tryCatch(file_delete(temp_file),
