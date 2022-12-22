@@ -2,6 +2,7 @@ auscensus
 ================
   <!-- badges: start -->
   [![R-CMD-check](https://github.com/carlosyanez/auscensus/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/carlosyanez/auscensus/actions/workflows/R-CMD-check.yaml)
+  [![lintr](https://github.com/carlosyanez/auscensus/actions/workflows/lintr.yml/badge.svg)](https://github.com/carlosyanez/auscensus/actions/workflows/lintr.yml)
   [![auscensus status badge](https://carlosyanez.r-universe.dev/badges/auscensus)](https://carlosyanez.r-universe.dev)
   <!-- badges: end -->
   
