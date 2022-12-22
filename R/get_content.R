@@ -32,7 +32,6 @@ get_census_data <- function(census_table,
                             geo_structure,
                             selected_years=list_census_years(),
                             ignore_cache=FALSE,
-                            #attribute=NULL,
                             collect_data=FALSE){
 
   tryCatch(remove_census_cache_csv(),
@@ -119,14 +118,15 @@ get_census_data <- function(census_table,
         names(data)[[data_index]] <- content_stubs[i,]$identifier
 
     }else{
-      if(!exists("content_data")){
         content_data <- get_auscensus_metadata("content.zip") |>
-          left_join(content_stubs |> select(-any_of(c("flag","cached_file","identifier"))) |> mutate(c_flag=TRUE),
+          left_join(content_stubs |>
+                      select(-any_of(c("flag","cached_file","identifier"))) |>
+                      mutate(c_flag=TRUE),
                     by=c("Year","element","geo")) |>
           filter(if_any(c("c_flag"), ~ .x==TRUE)) |>
           select(-any_of("c_flag"))
 
-      }
+
       if(!exists("geo_decode")){
         geo_decode    <- get_auscensus_metadata("geo_reverse.zip") |>
           filter(if_any(c("ASGS_Structure"), ~ .x %in% geo_struct)) |>
@@ -300,6 +300,11 @@ get_census_summary <- function(table_number=NULL,
 
   data <- tibble()
 
+  if(is(attribute,"data.frame")){
+    attribute <- attribute_tibble_to_list(attribute)
+  }
+
+
   if(is(attribute,"list")){
     attribute_filter <- NULL
     for(i in 1:length(attribute)){
@@ -399,5 +404,31 @@ get_census_summary <- function(table_number=NULL,
   }
 
   return(data)
+}
+
+
+#' Helper function to convert attributes to list
+#' @description Little helper function that converts tibble into a list with vectors, which is the
+#' expected attributes input for get_census_summary()
+#' @param tibble tibble/data.frame. First column is the original value, the second the new label
+#' @importFrom dplyr distinct filter pull
+#' @return list object
+#' @noRd
+attribute_tibble_to_list <- function(tb){
+  Attribute <- colnames(tb)[1]
+  Attr_New  <- colnames(tb)[2]
+
+  levels <- tb  |> distinct(Attr_New) |> pull()
+  results <- list()
+  i <-1
+  for(level in levels){
+
+    results[[i]]      <-  tb |> filter(Attr_New==level)  |> pull(Attribute)
+    names(results)[i] <-  level
+    i <- i +1
+
+
+  }
+  return(results)
 }
 
