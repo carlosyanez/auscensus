@@ -303,6 +303,9 @@ get_census_summary <- function(table_number=NULL,
   if(is(attribute,"data.frame")){
     attribute <- attribute_tibble_to_list(attribute)
   }
+  if(is(reference_total,"data.frame")){
+    reference_total <- attribute_tibble_to_list(reference_total)
+  }
 
 
   if(is(attribute,"list")){
