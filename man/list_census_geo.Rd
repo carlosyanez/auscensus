@@ -17,7 +17,7 @@ list_census_geo(geo_types = NULL, geo_names = NULL, geo_name_regex = NULL)
 tibble, showing the geo type, available for each year
 }
 \description{
-Get list of available geopgrahies, filterable by type and name.
+Get list of available geographies, filterable by type and name.
 }
 \examples{
 \dontrun{

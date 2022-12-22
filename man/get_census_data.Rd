@@ -9,7 +9,7 @@ get_census_data(
   geo_structure,
   selected_years = list_census_years(),
   ignore_cache = FALSE,
-  collect_data = TRUE
+  collect_data = FALSE
 )
 }
 \arguments{
@@ -21,7 +21,7 @@ get_census_data(
 
 \item{ignore_cache}{If TRUE, it will ignore cached files}
 
-\item{collect_data}{if TRUE (default), will return data, if FALSE , it will return {arrow} bindings to cached files}
+\item{collect_data}{if TRUE  will return data. if FALSE (default) , it will return {arrow} bindings to cached files}
 }
 \value{
 data frame with data from file, filtered by division and election year

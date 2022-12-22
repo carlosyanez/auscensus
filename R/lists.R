@@ -74,7 +74,7 @@ list_census_geo_types <- function(){
 
 
 #' Get census geographies, filterable
-#' @description Get list of available geopgrahies, filterable by type and name.
+#' @description Get list of available geographies, filterable by type and name.
 #' @returns tibble, showing the geo type, available for each year
 #' @importFrom  rlang .data
 #' @importFrom dplyr filter if_any mutate across if_else arrange all_of
@@ -186,6 +186,56 @@ list_census_tables <- function(number=NULL, table_name_regex=NULL){
 
 
   return(data)
+}
+
+#' List if a geo structure is available for a particular table , in a particular year
+#' @returns tibble
+#' @importFrom dplyr select any_of mutate across count if_else if_any rename
+#' @importFrom stringr str_remove str_detect
+#' @importFrom tidyr  pivot_wider
+#' @param year vector with years
+#' @param geo  vector with geo structure
+#' @param table_number table number
+#' @export
+#' @keywords lists
+#' @include internal.R
+#' @examples \dontrun{
+#' # Get list of all divisions
+#' list_census_geo()
+#'  }
+list_census_geo_tables <- function(year=NULL,geo=NULL, table_number=NULL){
+
+  geo_units <- list_census_geo_types()
+
+  contents <- get_auscensus_metadata("content.zip") |>
+              select(any_of(c("Year","geo","element"))) |>
+              mutate(across(any_of(c("element")), ~ str_remove(.x,"[A-Z]"))) |>
+              count(across(c("Year","geo","element"))) |>
+              mutate(across(c("n"), ~ if_else(.x>0,TRUE,FALSE))) |>
+              filter(if_any(any_of(c("n")), ~ .x ==TRUE)) |>
+              filter(if_any(any_of(c("geo")), ~ .x %in% geo_units$ASGS_Structure))
+
+
+  if(!is.null(year)){
+    contents <- contents |> filter(if_any(any_of(c("Year")), ~ .x %in% c(year)))
+  }
+  if(!is.null(geo)){
+    for(geo_x in geo){
+      contents <- contents |> filter(if_any(any_of(c("geo")), ~ str_detect(.x,geo_x)))
+    }
+  }
+  if(!is.null(table_number)){
+    contents <- contents |> filter(if_any(any_of(c("element")), ~ .x %in% c(table_number)))
+  }
+
+  contents <- contents |>
+              pivot_wider(names_from = "geo", values_from="n") |>
+              rename("table_number"="element")
+
+
+  return(contents)
+
+
 }
 
 #' Get names of attributes for a given census tables, across all time
