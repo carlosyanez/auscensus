@@ -385,17 +385,13 @@ get_census_summary <- function(table_number=NULL,
 
 
     if(!is.null(reference_total)){
-      if(!(percentage_scale %in% c(1,100))) stop("percentage scale must by 1 or 100 (as in 100%)")
 
-      total <-  data_i |>
-        filter(if_any(c("Attribute"), ~ .x %in% reference_total_filter))  |>
-        select(-any_of("Attribute")) |>
-        rename("Total"="Value")
 
-      data_i <- data_i |>
-        filter(if_any(c("Attribute"), ~ .x %in% names(attribute))) |>
-        left_join(total,by=c("Year","Unit","Census_Code")) |>
-        mutate(Percentage=percentage_scale*.data$Value/.data$Total)
+      data_i  < data_i |>
+                calculate_percentage(key_col="Attribute",
+                                     value_col="Value",
+                                     key_value="Total",
+                                     percentage_scale=percentage_scale)
 
 
       colnames(data_i)[which(colnames(data_i)=="Total")] <- names(reference_total)[1]
@@ -407,31 +403,5 @@ get_census_summary <- function(table_number=NULL,
   }
 
   return(data)
-}
-
-
-#' Helper function to convert attributes to list
-#' @description Little helper function that converts tibble into a list with vectors, which is the
-#' expected attributes input for get_census_summary()
-#' @param tibble tibble/data.frame. First column is the original value, the second the new label
-#' @importFrom dplyr distinct filter pull
-#' @return list object
-#' @noRd
-attribute_tibble_to_list <- function(tb){
-  Attribute <- colnames(tb)[1]
-  Attr_New  <- colnames(tb)[2]
-
-  levels <- tb  |> distinct(Attr_New) |> pull()
-  results <- list()
-  i <-1
-  for(level in levels){
-
-    results[[i]]      <-  tb |> filter(Attr_New==level)  |> pull(Attribute)
-    names(results)[i] <-  level
-    i <- i +1
-
-
-  }
-  return(results)
 }
 
