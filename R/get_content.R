@@ -387,7 +387,7 @@ get_census_summary <- function(table_number=NULL,
     if(!is.null(reference_total)){
 
 
-      data_i  < data_i |>
+      data_i  <- data_i |>
                 calculate_percentage(key_col="Attribute",
                                      value_col="Value",
                                      key_value="Total",
