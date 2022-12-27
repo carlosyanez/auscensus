@@ -4,10 +4,14 @@
 \alias{attribute_tibble_to_list}
 \title{Helper function to convert attributes to list}
 \usage{
-attribute_tibble_to_list(tb)
+attribute_tibble_to_list(df, labels = NULL, groups = NULL)
 }
 \arguments{
-\item{tb}{tibble/data.frame. First column is the original value, the second the new label}
+\item{df}{tibble/data.frame. First column is the original value, the second the new label}
+
+\item{labels}{original labels}
+
+\item{groups}{new labels}
 }
 \value{
 list object
@@ -16,3 +20,4 @@ list object
 Little helper function that converts tibble into a list with vectors, which is the
 expected attributes input for get_census_summary()
 }
+\keyword{helpers}

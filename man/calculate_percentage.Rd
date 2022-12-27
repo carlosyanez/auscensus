@@ -30,3 +30,4 @@ list object
 Little helper function that converts tibble into a list with vectors, which is the
 expected attributes input for get_census_summary()
 }
+\keyword{helpers}

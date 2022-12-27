@@ -18,7 +18,7 @@ which it will return. By default it will save the processed tables in the cache 
     
     <a class="navbar-brand me-2" href="../index.html">auscensus</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.1.0000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.1.0005</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -69,8 +69,8 @@ which it will return. By default it will save the processed tables in the cache 
 <span>  <span class="va">geo_structure</span>,</span>
 <span>  selected_years <span class="op">=</span> <span class="fu"><a href="list_census_years.html">list_census_years</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  ignore_cache <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  attributes <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  collect_data <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  collect_data <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  chunk_size <span class="op">=</span> <span class="fl">2.5</span> <span class="op">*</span> <span class="fl">10</span><span class="op">^</span><span class="fl">6</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -92,12 +92,12 @@ which it will return. By default it will save the processed tables in the cache 
 <dd><p>If TRUE, it will ignore cached files</p></dd>
 
 
-<dt>attributes</dt>
-<dd><p>If geo_structure, is SA1 or SA2, please provide a list of attributes (columns) - otherwise the function won't load the data.</p></dd>
-
-
 <dt>collect_data</dt>
-<dd><p>if TRUE (default), will return data, if FALSE , it will return arrow bindings to cached files</p></dd>
+<dd><p>if TRUE  will return data. if FALSE (default) , it will return arrow bindings to cached files</p></dd>
+
+
+<dt>chunk_size</dt>
+<dd><p>chunk size for parquet splitting</p></dd>
 
 </dl></div>
     <div class="section level2">

@@ -18,7 +18,7 @@ Provides and option to express values as percentage of another data point."><met
     
     <a class="navbar-brand me-2" href="../index.html">auscensus</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.1.0000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.1.0005</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -67,7 +67,7 @@ Provides and option to express values as percentage of another data point.</p>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">get_census_summary</span><span class="op">(</span></span>
 <span>  table_number <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  geo_structure <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  <span class="va">attributes</span>,</span>
+<span>  <span class="va">attribute</span>,</span>
 <span>  geo_unit_names <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  geo_unit_codes <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  selected_years <span class="op">=</span> <span class="fu"><a href="list_census_years.html">list_census_years</a></span><span class="op">(</span><span class="op">)</span>,</span>
@@ -75,7 +75,8 @@ Provides and option to express values as percentage of another data point.</p>
 <span>  percentage_scale <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  ignore_cache <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  data_source <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  data_collected <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  data_collected <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  census_table <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -89,7 +90,7 @@ Provides and option to express values as percentage of another data point.</p>
 <dd><p>vector with strings of geo structures (e.g. SA1,LGA,CED)</p></dd>
 
 
-<dt>attributes</dt>
+<dt>attribute</dt>
 <dd><p>attribute</p></dd>
 
 
@@ -123,6 +124,10 @@ Provides and option to express values as percentage of another data point.</p>
 
 <dt>data_collected</dt>
 <dd><p>TRUE if data_source is a dataset, FALSE if is  a DB,arrow binding</p></dd>
+
+
+<dt>census_table</dt>
+<dd><p>output of list_census_table()</p></dd>
 
 </dl></div>
     <div class="section level2">

@@ -1,20 +1,28 @@
 #' Helper function to convert attributes to list
 #' @description Little helper function that converts tibble into a list with vectors, which is the
 #' expected attributes input for get_census_summary()
-#' @param tb tibble/data.frame. First column is the original value, the second the new label
-#' @importFrom dplyr distinct filter pull
+#' @param df tibble/data.frame. First column is the original value, the second the new label
+#' @param labels original labels
+#' @param groups new labels
+#' @importFrom dplyr distinct filter pull across
 #' @return list object
 #' @export
-attribute_tibble_to_list <- function(tb){
-  Attribute <- colnames(tb)[1]
-  Attr_New  <- colnames(tb)[2]
+#' @keywords helpers
+attribute_tibble_to_list <- function(df,labels=NULL,groups=NULL){
+  if(is.null(labels))  labels  <- colnames(df)[1]
+  if(is.null(groups))  groups  <- colnames(df)[2]
 
-  levels <- tb  |> distinct(Attr_New) |> pull()
+  levels <- df  |> distinct(across(any_of(c(groups)))) |> pull()
   results <- list()
   i <-1
   for(level in levels){
 
-    results[[i]]      <-  tb |> filter(Attr_New==level)  |> pull(Attribute)
+    results[[i]]      <-  df |>
+                          filter(if_any(any_of(c(groups)), ~ .x==level))  |>
+                          select(any_of(labels))                          |>
+                          pull()
+
+
     names(results)[i] <-  level
     i <- i +1
 
@@ -36,6 +44,7 @@ attribute_tibble_to_list <- function(tb){
 #' @importFrom rlang .data
 #' @return list object
 #' @export
+#' @keywords helpers
 calculate_percentage <- function(df,key_col,value_col,key_value="Total",percentage_scale=1){
 
   if(!(percentage_scale %in% c(1,100))) stop("percentage scale must by 1 or 100 (as in 100%)")

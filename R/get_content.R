@@ -18,6 +18,7 @@
 #' @param selected_years  years to filter
 #' @param ignore_cache If TRUE, it will ignore cached files
 #' @param collect_data if TRUE  will return data. if FALSE (default) , it will return {arrow} bindings to cached files
+#' @param chunk_size chunk size for parquet splitting
 #' @importFrom rlang .data
 #' @include internal.R
 #' @keywords getdata
@@ -32,7 +33,8 @@ get_census_data <- function(census_table,
                             geo_structure,
                             selected_years=list_census_years(),
                             ignore_cache=FALSE,
-                            collect_data=FALSE){
+                            collect_data=FALSE,
+                            chunk_size = 2.5*10^6){
 
   tryCatch(remove_census_cache_csv(),
            error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
@@ -178,7 +180,6 @@ get_census_data <- function(census_table,
     n_cols <- length(data_j$schema$names)
     n_rows <- nrow(units)
 
-    chunk_size <- 5*10^5
     split <- ceiling(n_rows*n_cols/chunk_size)
     message(str_c(n_rows," rows and ",n_cols," columns. Splitting in ",split," chunks."))
     units <- units |>
