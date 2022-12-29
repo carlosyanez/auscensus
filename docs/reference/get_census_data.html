@@ -70,7 +70,7 @@ which it will return. By default it will save the processed tables in the cache 
 <span>  selected_years <span class="op">=</span> <span class="fu"><a href="list_census_years.html">list_census_years</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  ignore_cache <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  collect_data <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  chunk_size <span class="op">=</span> <span class="fl">2.5</span> <span class="op">*</span> <span class="fl">10</span><span class="op">^</span><span class="fl">6</span></span>
+<span>  attr <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -96,8 +96,8 @@ which it will return. By default it will save the processed tables in the cache 
 <dd><p>if TRUE  will return data. if FALSE (default) , it will return arrow bindings to cached files</p></dd>
 
 
-<dt>chunk_size</dt>
-<dd><p>chunk size for parquet splitting</p></dd>
+<dt>attr</dt>
+<dd><p>attributes to filter on</p></dd>
 
 </dl></div>
     <div class="section level2">

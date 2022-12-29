@@ -22,7 +22,6 @@ Imports:
     methods,
     naniar,
     piggyback,
-    readr,
     rlang,
     stats,
     stringr,

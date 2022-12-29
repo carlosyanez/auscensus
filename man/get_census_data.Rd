@@ -10,7 +10,7 @@ get_census_data(
   selected_years = list_census_years(),
   ignore_cache = FALSE,
   collect_data = FALSE,
-  chunk_size = 2.5 * 10^6
+  attr = NULL
 )
 }
 \arguments{
@@ -24,7 +24,7 @@ get_census_data(
 
 \item{collect_data}{if TRUE  will return data. if FALSE (default) , it will return {arrow} bindings to cached files}
 
-\item{chunk_size}{chunk size for parquet splitting}
+\item{attr}{attributes to filter on}
 }
 \value{
 data frame with data from file, filtered by division and election year

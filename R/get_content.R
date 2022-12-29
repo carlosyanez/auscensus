@@ -4,10 +4,9 @@
 #' @description  This function extracts table files from each data pack (given tables and geo structure), and will collate them together into a list(),
 #'  which it will return. By default it will save the processed tables in the cache folder (in parquet files), which it will use on subsquent calls.
 #' @return data frame with data from file, filtered by division and election year
-#' @importFrom dplyr filter if_any left_join relocate mutate all_of across distinct pull collect across ntile row_number
-#' @importFrom readr read_csv
+#' @importFrom dplyr filter if_any left_join relocate mutate all_of across distinct pull collect across
 #' @importFrom tibble tibble
-#' @importFrom stringr str_to_title str_c str_remove str_length
+#' @importFrom stringr  str_c str_remove str_length
 #' @importFrom zip unzip
 #' @importFrom stats setNames
 #' @importFrom fs path file_exists
@@ -18,7 +17,7 @@
 #' @param selected_years  years to filter
 #' @param ignore_cache If TRUE, it will ignore cached files
 #' @param collect_data if TRUE  will return data. if FALSE (default) , it will return {arrow} bindings to cached files
-#' @param chunk_size chunk size for parquet splitting
+#' @param attr attributes to filter on
 #' @importFrom rlang .data
 #' @include internal.R
 #' @keywords getdata
@@ -34,7 +33,7 @@ get_census_data <- function(census_table,
                             selected_years=list_census_years(),
                             ignore_cache=FALSE,
                             collect_data=FALSE,
-                            chunk_size = 2.5*10^6){
+                            attr=NULL){
 
   tryCatch(remove_census_cache_csv(),
            error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
@@ -104,152 +103,49 @@ get_census_data <- function(census_table,
   data <-list()
   #try to load files from cache, check if they are still current
   for(i in 1:nrow(content_stubs)){
+    data_index <- length(data) +1
     if(content_stubs[i,]$cache_exists&!ignore_cache){
+
         data_i <- open_dataset(content_stubs[i,]$cached_file,
                                format="parquet",
-                               unify_schemas=TRUE) |>
-                              select(-any_of(c("split")))
+                               unify_schemas=TRUE)
 
-        data_index <- length(data) +1
+        existing_attr <- data_i |>
+                        select(any_of(c("Attribute"))) |>
+                        distinct() |>
+                        collect() |>
+                        pull()
 
-        if(collect_data){
-          data[[data_index]] <- data_i |> collect()
-        }else{
-          data[[data_index]] <- data_i
+        remaining_attr <- attr[!(attr %in% existing_attr)]
+        if(length(remaining_attr)!=0){
+          data_i <- import_data(content_stubs,i,geo_struct,remaining_attr,avail_years)
         }
-        names(data)[[data_index]] <- content_stubs[i,]$identifier
 
     }else{
-        content_data <- get_auscensus_metadata("content.zip") |>
-          left_join(content_stubs |>
-                      select(-any_of(c("flag","cached_file","identifier"))) |>
-                      mutate(c_flag=TRUE),
-                    by=c("Year","element","geo")) |>
-          filter(if_any(c("c_flag"), ~ .x==TRUE)) |>
-          select(-any_of("c_flag"))
+
+      data_i <- import_data(content_stubs,i, geo_struct,attr,avail_years)
 
 
-      if(!exists("geo_decode")){
-        geo_decode    <- get_auscensus_metadata("geo_reverse.zip") |>
-          filter(if_any(c("ASGS_Structure"), ~ .x %in% geo_struct)) |>
-          pivot_longer(-any_of(c("ASGS_Structure","Census_Code")), names_to="Year",values_to="Unit") |>
-          filter(if_any(c("Year"), ~ .x %in% avail_years))
-      }
-      if(!exists("descriptors")){
-        descriptors <- get_auscensus_metadata("descriptors.zip") |>
-          mutate(across(c("Profiletable"), ~ str_remove(.x,"[a-zA-Z]$"))) |>
-          left_join(content_stubs,
-                    by=c("Year","Profiletable"="element")) |>
-          filter(if_any(c("flag"),~.x==TRUE))
-      }
-
-    content_i <- content_data |>
-      select(-any_of(c("flag"))) |>
-      left_join(content_stubs[i,], by=c("geo","Year","element")) |>
-      filter(if_any("flag", ~ .x==TRUE))
-
-    if(nrow(content_i)==0){
-      message("no data for year ",content_stubs[i,]$Year)
-    }else{
-
-    geo_decode_i <- geo_decode |>
-      filter(if_any(c("ASGS_Structure"),~ .x== geo_struct)) |>
-      filter(if_any(c("Year"), ~ .x==content_stubs[i,]$Year)) |>
-      select(-any_of(c("ASGS_Structure","Year")))
-
-    zip_file <- path(cache_dir,content_i$zip) |> unique()
-    filename <- content_i$filename
-    temp_file <- path(cache_dir,str_extract(filename,"[^/\\\\&\\?]+\\.\\w{3,4}(?=([\\?&].*$|$))"))
-
-    tryCatch(unzip(zipfile = zip_file,files=filename,junkpaths = TRUE,exdir = cache_dir),
-             error=function(e){cat("ERROR :",conditionMessage(e), "\n")},
-             finally=str_c("zip: ",zip_file," \n file: ",filename)
-              )
-
-
-    data_j <- open_dataset(temp_file,
-                           format="csv",
-                           unify_schemas=TRUE)
-    key_col <- data_j$schema$names[1]
-
-
-    units <- data_j |>
-              select(any_of(key_col)) |>
-              collect()
-
-    n_cols <- length(data_j$schema$names)
-    n_rows <- nrow(units)
-
-    split <- ceiling(n_rows*n_cols/chunk_size)
-    message(str_c(n_rows," rows and ",n_cols," columns. Splitting in ",split," chunks."))
-    units <- units |>
-              mutate(split=ntile(x = row_number(), split)) |>
-              mutate(across(any_of(c(key_col)), ~ as.character(.x)))
-
-    iterations <- unique(units$split)
-
-    geo_decode_u  <- geo_decode_i |> filter(if_any(any_of("Census_Code"), ~ .x %in% (units |> select(key_col) |> pull())))
-    decode_key <- as.vector("Census_Code")
-    names(decode_key) <- key_col
-    parquet_file <- content_i[1,]$cached_file
-
-    for(iter in iterations){
-
-      data_u <- data_j |>
-        mutate(across(c(key_col), ~ as.character(.x))) |>
-        left_join(units,by=key_col) |>
-        filter(if_any(any_of(c("split")),~ .x==iter)) |>
-        collect() |>
-        pivot_longer(-any_of(c(key_col,"split")),
-                     names_to="Short",
-                     values_to = "Value") |>
-        filter(if_any(any_of("Value"), ~ !is.na(.x)))
-
-      descriptors_u <- descriptors |>
-                      filter(if_any(any_of("Short"), ~ .x %in% data_u$Short)) |>
-                      select(any_of(c("Short","Long"))) |>
-                      distinct()
-
-      data_u <- data_u |>
-        left_join(descriptors_u ,by="Short") |>
-        left_join(geo_decode_u,by=decode_key) |>
-        mutate(Year = content_i[1,]$Year) |>
-        select(any_of(c("Year",key_col,"Unit","Long","Value","split"))) |>
-        rename("Census_Code"=key_col) |>
-        distinct() |>
-        pivot_wider(names_from = "Long", values_from="Value")
-
-      write_dataset(data_u,
-                    parquet_file,
-                    format="parquet",
-                    existing_data_behavior="delete_matching",
-                    partitioning="split")
     }
 
-    tryCatch(file_delete(temp_file),
-              error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
-
-    data_index <- length(data) +1
-
-    data_i <- open_dataset(parquet_file,
-                           format="parquet",
-                           unify_schemas=TRUE
-                           ) |>
-      select(-any_of(c("split")))
+    data_i <- data_i |>
+              filter(if_any(any_of(c("Attribute")), ~ .x %in% attr))
 
     if(collect_data){
-          data[[data_index]] <- data_i |> collect()
-        }else{
-          data[[data_index]] <- data_i
-        }
-    names(data)[data_index] <- content_i[1,]$identifier
+      data[[data_index]] <- data_i |>
+                            collect() |>
+                            pivot_wider(names_from = "Attribute",values_from = "Value")
+    }else{
+      data[[data_index]] <- data_i
     }
-
-      }
+    names(data)[[data_index]] <- content_stubs[i,]$identifier
   }
 
   return(data)
 }
+
+
+
 
 
 #' Get a particular data point across census
@@ -340,15 +236,17 @@ get_census_summary <- function(table_number=NULL,
                                    geo_structure,
                                    selected_years,
                                    ignore_cache,
-                                   collect_data =  FALSE)
+                                   collect_data =  FALSE,
+                                   attr = attr)
+
     data_collected <- FALSE
   }
 
   if(length(data_source)==0)  stop("no data found")
   for(i in 1:length(data_source)){
   if(!is.null(data_source[[i]])){
-    data_i <- data_source[[i]] |>
-                select(any_of(c("Census_Code","Unit","Year",attr)))
+
+    data_i <- data_source[[i]]
 
     if(!is.null(geo_unit_names)){
       data_i <- data_i |>
@@ -361,12 +259,13 @@ get_census_summary <- function(table_number=NULL,
     }
 
     if(!data_collected){
-      data_i <- data_i |> collect()
-      }
+      data_i <-  data_i |> collect()
+    }else{
+      data_i <- data_i |>
+        pivot_longer(-any_of(c("Year","Unit","Census_Code")),names_to="Attribute",values_to="Value")  |>
+        filter(if_any(c("Value"), ~ !is.na(.x)))
 
-    data_i <- data_i |>
-      pivot_longer(-any_of(c("Year","Unit","Census_Code")),names_to="Attribute",values_to="Value")  |>
-      filter(if_any(c("Value"), ~ !is.na(.x)))
+    }
 
 
     if(is(attribute,"list")){
@@ -374,6 +273,15 @@ get_census_summary <- function(table_number=NULL,
 
         data_i <- data_i |>
           mutate(across(c("Attribute"), ~ if_else(.x %in% attribute[[j]], names(attribute)[j],.x)))
+
+      }
+    }
+
+    if(is(reference_total,"list")){
+      for(j in 1:length(attribute)){
+
+        data_i <- data_i |>
+          mutate(across(c("Attribute"), ~ if_else(.x %in% reference_total[[j]], names(reference_total)[j],.x)))
 
       }
     }
