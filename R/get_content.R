@@ -159,6 +159,7 @@ get_census_data <- function(census_table,
 #' @importFrom tidyr pivot_longer
 #' @importFrom methods is
 #' @importFrom stringr str_replace_all
+#' @importFrom rlang .data
 #' @param table_number number of selected table
 #' @param geo_structure vector with strings of geo structures (e.g. SA1,LGA,CED)
 #' @param attribute attribute
@@ -250,6 +251,16 @@ get_census_summary <- function(table_number=NULL,
   if(!is.null(data_source[[i]])){
 
     data_i <- data_source[[i]]
+
+    #check if units are empty, SA1, CD
+    units_count <- data_i |> select(any_of("Unit")) |> collect() |> pull()
+    units_count <- sum(is.na(units_count)) / length(units_count)
+
+    if(units_count==1){
+      data_i <- data_i |>
+        mutate(Unit=.data$Census_Code)
+    }
+
 
     if(!is.null(geo_unit_names)){
       data_i <- data_i |>
