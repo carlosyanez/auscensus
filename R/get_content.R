@@ -277,7 +277,6 @@ get_census_summary <- function(table_number=NULL,
         data_i <- data_i |>
           mutate(across(c("Attribute"), ~ if_else(.x %in% str_replace(attribute[[j]],":","-", names(attribute)[j],.x)))
 
-      }
     }
 
     if(is(reference_total,"list")){
