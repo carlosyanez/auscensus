@@ -1,6 +1,6 @@
 Package: auscensus
 Title: Access Australian Census Data (2006-2021)
-Version: 0.0.1.0006
+Version: 0.0.1.0007
 Authors@R: c(
     person("Carlos", "Yáñez Santibáñez", , "carlos.yanez.s@gmail.com", role = c("aut", "cre")),
     person(given="Craig", family="Alexander", email= "Craig.Alexander.2@glasgow.ac.uk", role=c("ths")),
