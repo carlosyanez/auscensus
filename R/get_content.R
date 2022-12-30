@@ -128,6 +128,8 @@ get_census_data <- function(census_table,
 
     }
 
+    attr <-  str_replace_all(attr,":","-")
+
     data_i <- data_i |>
               filter(if_any(any_of(c("Attribute")), ~ .x %in% attr))
 
@@ -272,7 +274,7 @@ get_census_summary <- function(table_number=NULL,
       for(j in 1:length(attribute)){
 
         data_i <- data_i |>
-          mutate(across(c("Attribute"), ~ if_else(.x %in% attribute[[j]], names(attribute)[j],.x)))
+          mutate(across(c("Attribute"), ~ if_else(.x %in% str_replace(attribute[[j]],":","-", names(attribute)[j],.x)))
 
       }
     }
