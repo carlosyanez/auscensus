@@ -295,7 +295,7 @@ get_census_summary <- function(table_number=NULL,
       for(j in 1:length(reference_total)){
 
         data_i <- data_i |>
-          mutate(across(c("Attribute"), ~ if_else(.x %in% str_replace(attribute[[j]],":","-"), names(reference_total)[j],.x)))
+          mutate(across(c("Attribute"), ~ if_else(.x %in% str_replace(reference_total[[j]],":","-"), names(reference_total)[j],.x)))
 
       }
     }
@@ -313,7 +313,7 @@ get_census_summary <- function(table_number=NULL,
       data_i  <- data_i |>
                 calculate_percentage(key_col="Attribute",
                                      value_col="Value",
-                                     key_value="Total",
+                                     key_value=names(reference_total)[1],
                                      percentage_scale=percentage_scale)
 
 
