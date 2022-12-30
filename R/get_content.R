@@ -281,10 +281,10 @@ get_census_summary <- function(table_number=NULL,
     }
 
     if(is(reference_total,"list")){
-      for(j in 1:length(attribute)){
+      for(j in 1:length(reference_total)){
 
         data_i <- data_i |>
-          mutate(across(c("Attribute"), ~ if_else(.x %in% reference_total[[j]], names(reference_total)[j],.x)))
+          mutate(across(c("Attribute"), ~ if_else(.x %in% str_replace(attribute[[j]],":","-"), names(reference_total)[j],.x)))
 
       }
     }
