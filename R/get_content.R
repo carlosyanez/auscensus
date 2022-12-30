@@ -6,7 +6,7 @@
 #' @return data frame with data from file, filtered by division and election year
 #' @importFrom dplyr filter if_any left_join relocate mutate all_of across distinct pull collect across
 #' @importFrom tibble tibble
-#' @importFrom stringr  str_c str_remove str_length
+#' @importFrom stringr  str_c str_remove str_length str_replace_all
 #' @importFrom zip unzip
 #' @importFrom stats setNames
 #' @importFrom fs path file_exists
@@ -158,6 +158,7 @@ get_census_data <- function(census_table,
 #' @importFrom tibble tibble
 #' @importFrom tidyr pivot_longer
 #' @importFrom methods is
+#' @importFrom stringr str_replace_all
 #' @param table_number number of selected table
 #' @param geo_structure vector with strings of geo structures (e.g. SA1,LGA,CED)
 #' @param attribute attribute
