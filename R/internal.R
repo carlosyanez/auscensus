@@ -102,7 +102,7 @@ load_auscensus <- function(auscensus_file,
 #' Inherits variables from get_census_data()
 #' @return data frame with data from file, filtered by division and election year
 #' @importFrom dplyr left_join select any_of mutate if_any filter across collect pull distinct rename
-#' @importFrom stringr str_remove str_extract str_c
+#' @importFrom stringr str_remove str_extract str_c str_replace_all
 #' @importFrom tidyr pivot_longer
 #' @importFrom fs path
 #' @importFrom zip  unzip
@@ -196,8 +196,9 @@ import_data <- function(content_stubs,i, geo_struct,attr,avail_years){
         mutate(Year = content_i[1,]$Year) |>
         select(any_of(c("Year",key_col,"Unit","Long","Attribute","Value"))) |>
         rename("Census_Code"=key_col) |>
-        rename("Attribute"="Long") |>
-        distinct()
+        rename("Attribute"="Long")    |>
+        distinct()                    |>
+        mutate(across(c("Attribute"), ~ str_replace_all(.x,":","-")))
 
       write_dataset(data_u,
                     parquet_file,
