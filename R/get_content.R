@@ -6,7 +6,7 @@
 #' @return data frame with data from file, filtered by division and election year
 #' @importFrom dplyr filter if_any left_join relocate mutate all_of across distinct pull collect across
 #' @importFrom tibble tibble
-#' @importFrom stringr  str_c str_remove str_length str_replace_all
+#' @importFrom stringr  str_c str_remove str_length str_replace_all str_squish str_remove_all fixed
 #' @importFrom zip unzip
 #' @importFrom stats setNames
 #' @importFrom fs path file_exists
@@ -129,6 +129,11 @@ get_census_data <- function(census_table,
     }
 
     attr <-  str_replace_all(attr,":","-")
+    attr <- str_squish(attr)
+    attr <- str_remove_all(attr, "[^A-z|0-9|[:punct:]|\\s]")
+    attr <- str_remove_all(attr, ":")
+    attr <- str_remove_all(attr, "/")
+    attr <- str_remove_all(attr, fixed("\\"))
 
     data_i <- data_i |>
               filter(if_any(any_of(c("Attribute")), ~ .x %in% attr))
@@ -285,8 +290,16 @@ get_census_summary <- function(table_number=NULL,
     if(is(attribute,"list")){
       for(j in 1:length(attribute)){
 
+        attr_j <- attribute[[j]]
+
+        attr_j <- str_squish(attr_j)
+        attr_j <- str_remove_all(attr_j, "[^A-z|0-9|[:punct:]|\\s]")
+        attr_j <- str_remove_all(attr_j, ":")
+        attr_j <- str_remove_all(attr_j, "/")
+        attr_j <- str_remove_all(attr_j, fixed("\\"))
+
         data_i <- data_i |>
-          mutate(across(c("Attribute"), ~ if_else(.x %in% str_replace(attribute[[j]],":","-"), names(attribute)[j],.x)))
+          mutate(across(c("Attribute"), ~ if_else(.x %in% str_replace(attr_j,":","-"), names(attribute)[j],.x)))
 
       }
     }

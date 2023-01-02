@@ -10,3 +10,4 @@
 ^vignettes_orig/*
 ^precompile/*
 .github/*
+^data-raw/*

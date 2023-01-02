@@ -102,7 +102,7 @@ load_auscensus <- function(auscensus_file,
 #' Inherits variables from get_census_data()
 #' @return data frame with data from file, filtered by division and election year
 #' @importFrom dplyr left_join select any_of mutate if_any filter across collect pull distinct rename
-#' @importFrom stringr str_remove str_extract str_c str_replace_all
+#' @importFrom stringr str_remove str_extract str_c str_replace_all str_squish str_remove_all fixed
 #' @importFrom tidyr pivot_longer
 #' @importFrom fs path
 #' @importFrom zip  unzip
@@ -139,7 +139,20 @@ import_data <- function(content_stubs,i, geo_struct,attr,avail_years){
       filter(if_any(c("flag"),~.x==TRUE))
 
     if(!is.null(attr)){
-      descriptors <- descriptors |> filter(if_any(c("Long"), ~ .x %in% attr))
+      attr <- str_squish(attr)
+      attr <- str_remove_all(attr, "[^A-z|0-9|[:punct:]|\\s]")
+      attr <- str_remove_all(attr, ":")
+      attr <- str_remove_all(attr, "/")
+      attr <- str_remove_all(attr, fixed("\\"))
+
+      descriptors <- descriptors |>
+        mutate(across(any_of(c("Long")), ~ str_squish(.x))) |>
+        mutate(across(any_of(c("Long")), ~ str_remove_all(.x, "[^A-z|0-9|[:punct:]|\\s]"))) |>
+        mutate(across(any_of(c("Long")), ~ str_remove_all(.x,":"))) |>
+        mutate(across(any_of(c("Long")), ~ str_remove_all(.x,"/"))) |>
+        mutate(across(any_of(c("Long")), ~ str_remove_all(.x,fixed("\\")))) |>
+        mutate(across(any_of(c("Long")), ~ str_remove_all(.x,fixed('"'))))  |>
+        filter(if_any(c("Long"), ~ .x %in% attr))
     }
 
     geo_decode <- get_auscensus_metadata("geo_reverse.zip") |>
