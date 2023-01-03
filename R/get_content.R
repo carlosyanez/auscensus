@@ -258,12 +258,16 @@ get_census_summary <- function(table_number=NULL,
     data_i <- data_source[[i]]
 
     #check if units are empty, SA1, CD
-    units_count <- data_i |> select(any_of("Unit")) |> collect() |> pull()
-    units_count <- sum(is.na(units_count)) / length(units_count)
+    units_count <- data_i |> select(any_of("Unit")) |> collect()
 
-    if(units_count==1){
-      data_i <- data_i |>
+    if(nrow(units_count)!=0){
+      units_count <- units_count |> pull()
+      units_count <- sum(is.na(units_count)) / length(units_count)
+
+      if(units_count==1){
+        data_i <- data_i |>
         mutate(Unit=.data$Census_Code)
+      }
     }
 
 
