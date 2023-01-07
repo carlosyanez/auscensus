@@ -128,12 +128,15 @@ get_census_data <- function(census_table,
 
     }
 
-    attr <-  str_replace_all(attr,":","-")
     attr <- str_squish(attr)
     attr <- str_remove_all(attr, "[^A-z|0-9|[:punct:]|\\s]")
     attr <- str_remove_all(attr, ":")
     attr <- str_remove_all(attr, "/")
     attr <- str_remove_all(attr, fixed("\\"))
+
+    #data_i <- open_dataset(content_stubs[i,]$cached_file,
+    #                       format="parquet",
+    #                       unify_schemas=TRUE)
 
     data_i <- data_i |>
               filter(if_any(any_of(c("Attribute")), ~ .x %in% !!attr))
