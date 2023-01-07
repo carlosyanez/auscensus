@@ -211,7 +211,7 @@ import_data <- function(content_stubs,i, geo_struct,attr,avail_years){
         rename("Census_Code"=key_col) |>
         rename("Attribute"="Long")    |>
         distinct()                    |>
-        mutate(across(c("Attribute"), ~ str_replace_all(.x,":","-")))
+        mutate(across(c("Attribute"), ~ str_remove_all(.x,":")))
 
       write_dataset(data_u,
                     parquet_file,

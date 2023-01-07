@@ -222,6 +222,8 @@ get_census_summary <- function(table_number=NULL,
   }else{
     attribute_filter <- attribute
   }
+
+
   reference_total_filter <- NULL
   if(is(reference_total,"list")){
     reference_total_filter <- NULL
