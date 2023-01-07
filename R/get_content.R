@@ -103,7 +103,7 @@ get_census_data <- function(census_table,
   data <-list()
   #try to load files from cache, check if they are still current
   for(i in 1:nrow(content_stubs)){
-    data_index <- length(data) +1
+    data_index <- length(data) + 1
     if(content_stubs[i,]$cache_exists&!ignore_cache){
 
         data_i <- open_dataset(content_stubs[i,]$cached_file,
@@ -136,7 +136,7 @@ get_census_data <- function(census_table,
     attr <- str_remove_all(attr, fixed("\\"))
 
     data_i <- data_i |>
-              filter(if_any(any_of(c("Attribute")), ~ .x %in% attr))
+              filter(if_any(any_of(c("Attribute")), ~ .x %in% !!attr))
 
     if(collect_data){
       data[[data_index]] <- data_i |>

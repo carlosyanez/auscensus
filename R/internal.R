@@ -185,7 +185,7 @@ import_data <- function(content_stubs,i, geo_struct,attr,avail_years){
       select(any_of(key_col)) |>
       collect()
 
-    geo_decode_u  <- geo_decode |> filter(if_any(any_of("Census_Code"), ~ .x %in% (units |> select(key_col) |> pull())))
+    geo_decode_u  <- geo_decode |> filter(if_any(any_of(c("Census_Code")), ~ .x %in% (units |> select(key_col) |> pull())))
     decode_key <- as.vector("Census_Code")
     names(decode_key) <- key_col
     parquet_file <- content_i[1,]$cached_file
