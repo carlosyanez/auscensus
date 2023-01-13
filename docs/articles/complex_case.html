@@ -117,7 +117,7 @@ censuses.</p>
 <span>  <span class="fu">right_join</span><span class="op">(</span><span class="va">tables_summary</span>, by<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"table_number"</span><span class="op">=</span><span class="st">"Number"</span>,<span class="st">"Year"</span><span class="op">=</span><span class="st">"Year"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">rhandsontable</span><span class="op">(</span>readOnly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">hot_cols</span><span class="op">(</span>columnSorting <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<p><img src="articles/complex-case-unnamed-chunk-1-1.png" alt="plot of chunk unnamed-chunk-1" width="100%"></p>
+<p><img src="https://carlosyanez.github.io/auscensus/articles/complex-case-unnamed-chunk-1-1.png" alt="plot of chunk unnamed-chunk-1" width="100%"></p>
 <p>Therefore, we will retrieve the data from the lowest statistical
 unit. However, SA1 were not available in 2006 - where the smallest area
 was a “CD”.</p>
@@ -130,7 +130,7 @@ was a “CD”.</p>
 <span>  <span class="fu">right_join</span><span class="op">(</span><span class="va">tables_summary</span>, by<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"table_number"</span><span class="op">=</span><span class="st">"Number"</span>,<span class="st">"Year"</span><span class="op">=</span><span class="st">"Year"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">rhandsontable</span><span class="op">(</span>readOnly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">hot_cols</span><span class="op">(</span>columnSorting <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<p><img src="articles/complex-case-unnamed-chunk-2-1.png" alt="plot of chunk unnamed-chunk-2" width="100%"></p>
+<p><img src="https://carlosyanez.github.io/auscensus/articles/complex-case-unnamed-chunk-2-1.png" alt="plot of chunk unnamed-chunk-2" width="100%"></p>
 <p>The next step is to figure the attributes for the numbers of
 Australian citizen and total population, which are presented below:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
@@ -158,7 +158,7 @@ Australian citizen and total population, which are presented below:</p>
 <span><span class="va">citizenship_attributes</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu">rhandsontable</span><span class="op">(</span>readOnly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">hot_cols</span><span class="op">(</span>columnSorting <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<p><img src="articles/complex-case-unnamed-chunk-3-1.png" alt="plot of chunk unnamed-chunk-3" width="100%"></p>
+<p><img src="https://carlosyanez.github.io/auscensus/articles/complex-case-unnamed-chunk-3-1.png" alt="plot of chunk unnamed-chunk-3" width="100%"></p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">citizenship_attributes</span> <span class="op">&lt;-</span> <span class="va">citizenship_attributes</span>   <span class="op">|&gt;</span> </span>
@@ -180,7 +180,7 @@ Australian citizen and total population, which are presented below:</p>
 <span><span class="va">citizenship_attributes</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu">rhandsontable</span><span class="op">(</span>readOnly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">hot_cols</span><span class="op">(</span>columnSorting <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<p><img src="articles/complex-case-unnamed-chunk-4-1.png" alt="plot of chunk unnamed-chunk-4" width="100%"></p>
+<p><img src="https://carlosyanez.github.io/auscensus/articles/complex-case-unnamed-chunk-4-1.png" alt="plot of chunk unnamed-chunk-4" width="100%"></p>
 <p>Using <em>attribute_tibble_to_list</em>, this data frame can be
 converted into the required format.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
@@ -273,7 +273,7 @@ list and calculate percentages.</p>
 <span>  <span class="fu">pivot_wider</span><span class="op">(</span>names_from <span class="op">=</span> <span class="va">Year</span>, values_from <span class="op">=</span> <span class="va">Percentage</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">rhandsontable</span><span class="op">(</span>readOnly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">hot_cols</span><span class="op">(</span>columnSorting <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<p><img src="articles/complex-case-unnamed-chunk-7-1.png" alt="plot of chunk unnamed-chunk-7" width="100%"></p>
+<p><img src="https://carlosyanez.github.io/auscensus/articles/complex-case-unnamed-chunk-7-1.png" alt="plot of chunk unnamed-chunk-7" width="100%"></p>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside>
 </div>
