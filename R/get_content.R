@@ -4,7 +4,7 @@
 #' @description  This function extracts table files from each data pack (given tables and geo structure), and will collate them together into a list(),
 #'  which it will return. By default it will save the processed tables in the cache folder (in parquet files), which it will use on subsquent calls.
 #' @return data frame with data from file, filtered by division and election year
-#' @importFrom dplyr filter if_any left_join relocate mutate all_of across distinct pull collect across
+#' @importFrom dplyr filter if_any left_join relocate mutate all_of across distinct pull collect across bind_rows
 #' @importFrom tibble tibble
 #' @importFrom stringr  str_c str_remove str_length str_replace_all str_squish str_remove_all fixed
 #' @importFrom zip unzip
@@ -12,6 +12,8 @@
 #' @importFrom fs path file_exists
 #' @importFrom tidyr pivot_longer pivot_wider crossing
 #' @importFrom arrow read_parquet open_dataset write_dataset
+#' @importFrom progressr with_progress
+#' @importFrom methods is
 #' @param census_table list of tables, in the format of the output of list_census_tables()
 #' @param geo_structure vector with strings of geo structures (e.g. SA1,LGA,CED)
 #' @param selected_years  years to filter
@@ -45,6 +47,21 @@ get_census_data <- function(census_table,
     geo_struct <- geo_structure
   }
 
+  if(is.null(attr)){
+      tables_to_search <- unique(census_table$Number)
+      attr <- tibble()
+      for(i in 1:length(tables_to_search)){
+        attr_n <- list_census_attributes(tables_to_search[i]) |>
+                  pivot_longer(-any_of(c("Table","Attribute")),
+                               names_to="Year",
+                               values_to="flag")
+
+
+        attr <- bind_rows(attr,attr_n) |> distinct()
+
+
+      }
+  }
 
   #basic data
   avail_years  <- list_census_years()
@@ -103,8 +120,20 @@ get_census_data <- function(census_table,
   data <-list()
   #try to load files from cache, check if they are still current
   for(i in 1:nrow(content_stubs)){
+
+    if(is(attr,"tbl")){
+      attr_i <- attr |>
+                filter(if_any(any_of(c("Year")), ~.x %in% content_stubs[i,]$Year)) |>
+                select(any_of(c("Attribute"))) |>
+                pull()
+    }else{
+      attr_i <- attr
+    }
+
     data_index <- length(data) + 1
     if(content_stubs[i,]$cache_exists&!ignore_cache){
+
+
 
         data_i <- open_dataset(content_stubs[i,]$cached_file,
                                format="parquet",
@@ -116,30 +145,30 @@ get_census_data <- function(census_table,
                         collect() |>
                         pull()
 
-        remaining_attr <- attr[!(attr %in% existing_attr)]
+        remaining_attr <- attr_i[!(attr_i %in% existing_attr)]
         if(length(remaining_attr)!=0){
-          data_i <- import_data(content_stubs,i,geo_struct,remaining_attr,avail_years)
+          data_i <- import_data(content_stubs,i,geo_struct,remaining_attr,unique(content_stubs$Year))
         }
 
     }else{
 
-      data_i <- import_data(content_stubs,i, geo_struct,attr,avail_years)
+      data_i <- import_data(content_stubs,i, geo_struct,attr_i,unique(content_stubs$Year))
 
 
     }
 
-    attr <- str_squish(attr)
-    attr <- str_remove_all(attr, "[^A-z|0-9|[:punct:]|\\s]")
-    attr <- str_remove_all(attr, ":")
-    attr <- str_remove_all(attr, "/")
-    attr <- str_remove_all(attr, fixed("\\"))
+    attr_i <- str_squish(attr_i)
+    attr_i <- str_remove_all(attr_i, "[^A-z|0-9|[:punct:]|\\s]")
+    attr_i <- str_remove_all(attr_i, ":")
+    attr_i <- str_remove_all(attr_i, "/")
+    attr_i <- str_remove_all(attr_i, fixed("\\"))
 
     #data_i <- open_dataset(content_stubs[i,]$cached_file,
     #                       format="parquet",
     #                       unify_schemas=TRUE)
 
     data_i <- data_i |>
-              filter(if_any(any_of(c("Attribute")), ~ .x %in% !!attr))
+              filter(if_any(any_of(c("Attribute")), ~ .x %in% !!attr_i))
 
     if(collect_data){
       data[[data_index]] <- data_i |>

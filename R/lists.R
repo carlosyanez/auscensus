@@ -245,7 +245,7 @@ list_census_geo_tables <- function(year=NULL,geo=NULL, table_number=NULL){
 #' @importFrom stringr str_detect str_remove str_to_title
 #' @importFrom tidyr  pivot_wider
 #' @param number vector containing one or more table numbers
-#' @param table_name_regex string with a regular expression to filter table names (i.e. for all elements containing with Country : "Country")
+#' @param attribute_regex string with a regular expression to filter attribute names
 #' @export
 #' @keywords lists
 #' @include internal.R
@@ -253,7 +253,7 @@ list_census_geo_tables <- function(year=NULL,geo=NULL, table_number=NULL){
 #' # Get list of all divisions
 #' list_census_attributes()
 #'  }
-list_census_attributes <- function(number=NULL, table_name_regex=NULL){
+list_census_attributes <- function(number=NULL, attribute_regex=NULL){
 
   data <- get_auscensus_metadata("descriptors.zip")
   avail_years <- list_census_years()
@@ -279,9 +279,9 @@ list_census_attributes <- function(number=NULL, table_name_regex=NULL){
     rename("Table"="Profiletable","Attribute"="Long")
 
 
-  if(!is.null(table_name_regex)){
+  if(!is.null(attribute_regex)){
     data <- data |>
-      filter(if_any(c("Attribute"), ~ str_detect(.x,table_name_regex)))
+      filter(if_any(c("Attribute"), ~ str_detect(.x,attribute_regex)))
 
   }
 

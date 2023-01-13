@@ -4,14 +4,14 @@
 \alias{attribute_tibble_to_list}
 \title{Helper function to convert attributes to list}
 \usage{
-attribute_tibble_to_list(df, labels = NULL, groups = NULL)
+attribute_tibble_to_list(df, original = colnames(df)[1], new = colnames(df)[2])
 }
 \arguments{
 \item{df}{tibble/data.frame. First column is the original value, the second the new label}
 
-\item{labels}{original labels}
+\item{original}{name of original attribute}
 
-\item{groups}{new labels}
+\item{new}{new naming}
 }
 \value{
 list object
@@ -19,5 +19,16 @@ list object
 \description{
 Little helper function that converts tibble into a list with vectors, which is the
 expected attributes input for get_census_summary()
+}
+\examples{
+\dontrun{
+attributes <- tribble(~Census_stat, ~ Group,
+        "Age_years_60_males","60 year old male",
+         "Age (Years): 60_males","60 year old male",
+         "Age_years_60_males","60 year old female",
+         "Age (Years): 60_females","60 year old female")
+         attribute_tibble_to_list(attributes)
+
+}
 }
 \keyword{helpers}

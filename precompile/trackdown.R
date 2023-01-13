@@ -4,7 +4,7 @@
 
 
 ## Settings #####
-gdrive_path <- "trackdown"              # the folder on google drive
+gdrive_path <- "auscensus"              # the folder on google drive
 
 
 # Executive Summary ####
@@ -12,8 +12,8 @@ gdrive_path <- "trackdown"              # the folder on google drive
 
 #upload for first time
 
-trackdown::upload_file(here::here("precompile","setup.Rmd"), gpath="auscensus",hide_code=TRUE)
-trackdown::upload_file(here::here("precompile","getting_data.Rmd"), gpath="auscensus",hide_code=TRUE)
+trackdown::update_file(here::here("precompile","setup.Rmd"), gpath="auscensus",hide_code=TRUE)
+trackdown::update_file(here::here("precompile","getting_data.Rmd"), gpath="auscensus",hide_code=TRUE)
 
 #sync RMD back with google
 trackdown::download_file(here::here("precompile","setup.Rmd"),gpath="auscensus")

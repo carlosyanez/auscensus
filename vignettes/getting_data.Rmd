@@ -3,7 +3,7 @@ title: "Auscensus - Getting Data"
 resource_files:
   - vignetttes/house-preference-flow*.png
 author: "Carlos YANEZ SANTIBANEZ"
-date: "2022-11-28"
+date: "2023-01-14"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Auscensus - Getting Data}
@@ -80,7 +80,7 @@ Once the table has been selected, *list_census_attributes()* can be used to sele
 
 
 ```r
-list_census_attributes(number="04",table_name_regex = "60|[Tt]otal")
+list_census_attributes(number="04",attribute_regex = "60|[Tt]otal")
 #> # A tibble: 15 × 6
 #>    Table Attribute                        `2021` `2016` `2011` `2006`
 #>    <chr> <chr>                            <lgl>  <lgl>  <lgl>  <lgl> 
@@ -139,13 +139,18 @@ Please note that the above functions only show data for the *available* data pac
 
 ## Retrieving Census Data
 
-Once the questions have been resolved, it is possible to use {auscensus} to retrieve the data with *get_census_data()*. This function will present the result for each {table, year, geopgrahy} combination as a different element within a list. For example:
+Once the questions have been resolved, it is possible to use {auscensus} to retrieve the data with *get_census_data()*. This function will present the result for each {table, year, geography} combination as a different element within a list. By default the function does not return data but a parquet binding function - this can be changes by setting *collect_data = TRUE*. For example:
 
 
 ```r
 
 data <- get_census_data(census_table = list_census_tables("04"),
-                        geo_structure = "LGA")
+                        geo_structure = "LGA",
+                        collect_data = TRUE)
+#> ERROR : [EBUSY] Failed to remove 'C:/Users/carlo/OneDrive/Documents/.auscensus_cache/LGA_Vic_B04_A.csv': resource busy or locked 
+#> ERROR : [EBUSY] Failed to remove 'C:/Users/carlo/OneDrive/Documents/.auscensus_cache/2011Census_B04A_AUST_LGA_short.csv': resource busy or locked 
+#> ERROR : [EBUSY] Failed to remove 'C:/Users/carlo/OneDrive/Documents/.auscensus_cache/2016Census_G04A_AUS_LGA.csv': resource busy or locked 
+#> ERROR : [EBUSY] Failed to remove 'C:/Users/carlo/OneDrive/Documents/.auscensus_cache/2021Census_G04A_AUST_LGA.csv': resource busy or locked
   
 names(data)   
 #> [1] "2006_LGA_B04" "2011_LGA_B04" "2016_LGA_G04" "2021_LGA_G04"
@@ -155,78 +160,60 @@ names(data)
 ```r
 data$`2006_LGA_B04`
 #> # A tibble: 685 × 309
-#>     Year Unit     Censu…¹ Age (…² Age (…³ Age (…⁴ Age (…⁵ Age (…⁶ Age (…⁷ Age (…⁸ Age (…⁹ Age (…˟ Age (…˟ Age (…˟ Age (…˟ Age (…˟ Age (…˟ Age (…˟ Age (…˟ Age (…˟ Age (…˟
-#>    <dbl> <chr>    <chr>     <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <dbl>
-#>  1  2006 Unincor… LGA893…    2214    2121    4335    2018    1948    3966    2091    1947    4038    2033    1856    3889    1926    1926    3852   10282    9798   20080
-#>  2  2006 No Usua… LGA894…       6       4      10       5       7      12       6       3       9       4       3       7       5       4       9      26      21      47
-#>  3  2006 Albury   LGA100…     337     305     642     313     307     620     267     286     553     309     296     605     298     296     594    1524    1490    3014
-#>  4  2006 Armidal… LGA101…     137     144     281     132     128     260     146     127     273     125     129     254     164     132     296     704     660    1364
-#>  5  2006 Ashfield LGA101…     265     246     511     232     200     432     219     209     428     235     183     418     211     210     421    1162    1048    2210
-#>  6  2006 Auburn   LGA102…     541     562    1103     545     468    1013     510     473     983     457     458     915     463     422     885    2516    2383    4899
-#>  7  2006 Ballina  LGA102…     191     197     388     190     176     366     218     194     412     197     207     404     219     223     442    1015     997    2012
-#>  8  2006 Balrana… LGA103…       8      16      24      28      12      40      19      13      32      16      21      37      16      14      30      87      76     163
-#>  9  2006 Banksto… LGA103…    1331    1240    2571    1337    1239    2576    1286    1241    2527    1367    1215    2582    1257    1195    2452    6578    6130   12708
-#> 10  2006 Bathurs… LGA104…     276     227     503     225     222     447     240     223     463     248     202     450     251     241     492    1240    1115    2355
-#> # … with 675 more rows, 288 more variables: `Age (Years): 5_males` <dbl>, `Age (Years): 5_females` <dbl>, `Age (Years): 5_persons` <dbl>, `Age (Years): 6_males` <dbl>,
-#> #   `Age (Years): 6_females` <dbl>, `Age (Years): 6_persons` <dbl>, `Age (Years): 7_males` <dbl>, `Age (Years): 7_females` <dbl>, `Age (Years): 7_persons` <dbl>,
-#> #   `Age (Years): 8_males` <dbl>, `Age (Years): 8_females` <dbl>, `Age (Years): 8_persons` <dbl>, `Age (Years): 9_males` <dbl>, `Age (Years): 9_females` <dbl>,
-#> #   `Age (Years): 9_persons` <dbl>, `Age (Years): 5-9 Years_males` <dbl>, `Age (Years): 5-9 Years_females` <dbl>, `Age (Years): 5-9 Years_persons` <dbl>,
-#> #   `Age (Years): 10_males` <dbl>, `Age (Years): 10_females` <dbl>, `Age (Years): 10_persons` <dbl>, `Age (Years): 11_males` <dbl>, `Age (Years): 11_females` <dbl>,
-#> #   `Age (Years): 11_persons` <dbl>, `Age (Years): 12_males` <dbl>, `Age (Years): 12_females` <dbl>, `Age (Years): 12_persons` <dbl>, `Age (Years): 13_males` <dbl>,
-#> #   `Age (Years): 13_females` <dbl>, `Age (Years): 13_persons` <dbl>, `Age (Years): 14_males` <dbl>, `Age (Years): 14_females` <dbl>, `Age (Years): 14_persons` <dbl>, …
+#>     Year Census_Code Unit  Age (…¹ Age (…² Age (…³ Age (…⁴ Age (…⁵ Age (…⁶ Age (…⁷ Age (…⁸ Age (…⁹ Age (…˟ Age (…˟ Age (…˟ Age (…˟ Age (…˟ Age (…˟ Age (…˟
+#>    <dbl> <chr>       <chr>   <int>   <int>   <int>   <int>   <int>   <int>   <int>   <int>   <int>   <int>   <int>   <int>   <int>   <int>   <int>   <int>
+#>  1  2006 LGA89399    Unin…    2121    9798   10282   20080    2214    4335   10436   21360      16       7   10924      23    2021    2068    4089    2094
+#>  2  2006 LGA89499    No U…       4      21      26      47       6      10      18      26       0       0       8       0       3       0       3       3
+#>  3  2006 LGA10050    Albu…     305    1490    1524    3014     337     642    1675    3422       8       4    1747      12     305     326     631     357
+#>  4  2006 LGA10110    Armi…     144     660     704    1364     137     281     910    1809       0       0     899       0     163     157     320     173
+#>  5  2006 LGA10150    Ashf…     246    1048    1162    2210     265     511     943    1910      14       0     967      14     199     201     400     171
+#>  6  2006 LGA10200    Aubu…     562    2383    2516    4899     541    1103    2049    4223       0       5    2174       5     420     451     871     434
+#>  7  2006 LGA10250    Ball…     197     997    1015    2012     191     388    1370    2754       7       0    1384       7     256     273     529     246
+#>  8  2006 LGA10300    Balr…      16      76      87     163       8      24      82     175       0       0      93       0      15      15      30      18
+#>  9  2006 LGA10350    Bank…    1240    6130    6578   12708    1331    2571    5957   12425      14       3    6468      17    1202    1257    2459    1189
+#> 10  2006 LGA10470    Bath…     227    1115    1240    2355     276     503    1272    2609       6       0    1337       6     243     254     497     234
+#> # … with 675 more rows, 290 more variables: `Age (Years) 11_males` <int>, `Age (Years) 11_persons` <int>, `Age (Years) 12_females` <int>,
+#> #   `Age (Years) 12_males` <int>, `Age (Years) 12_persons` <int>, `Age (Years) 13_females` <int>, `Age (Years) 13_males` <int>,
+#> #   `Age (Years) 13_persons` <int>, `Age (Years) 14_females` <int>, `Age (Years) 14_males` <int>, `Age (Years) 14_persons` <int>,
+#> #   `Age (Years) 15-19 Years_females` <int>, `Age (Years) 15-19 Years_males` <int>, `Age (Years) 15-19 Years_persons` <int>,
+#> #   `Age (Years) 15_females` <int>, `Age (Years) 15_males` <int>, `Age (Years) 15_persons` <int>, `Age (Years) 16_females` <int>,
+#> #   `Age (Years) 16_males` <int>, `Age (Years) 16_persons` <int>, `Age (Years) 17_females` <int>, `Age (Years) 17_males` <int>,
+#> #   `Age (Years) 17_persons` <int>, `Age (Years) 18_females` <int>, `Age (Years) 18_males` <int>, `Age (Years) 18_persons` <int>, …
 ```
+
+Note: Be mindful some tables are quite large!
 
 By default, this command will store each table in a parquet file in the cache by directory if you want to stop that from happening use the argument *cache=FALSE*. Similarly, its default behaviour is to read data from cached files before extracting them from the data pack. If you want to ignore the cache, use *ignore_cache=TRUE*.
 
 ## Getting ready to use summaries
 
-Although *get_census_data()*, provides great flexibility for data processing, in most cases, it is just of interest to get just a table with a limited number of variables for analysis. For this purpose, this package provides *get_census_summary()*. For instance, if we are only interested in getting the numbers for 60-year-old men by LGA in the 2021 census (see above), we can use:
+Although *get_census_data()*, provides great flexibility for data processing, in most cases, it is just of interest to get just a table with a limited number of variables for analysis. For this purpose, this package provides *get_census_summary()*. For instance, if we are only interested in getting the numbers for 60-year-olds  by LGA in the 2021 census (see above), we can use:
 
-
-```r
-
-get_census_summary(table_number = "04",
-                   attributes = "Age_years_60_males",
-                   geo_structure = "LGA",
-                   selected_years = "2021")
-#> # A tibble: 565 × 4
-#>     Year Unit              Attribute          Value
-#>    <dbl> <chr>             <chr>              <dbl>
-#>  1  2021 Albury            Age_years_60_males   368
-#>  2  2021 Armidale Regional Age_years_60_males   157
-#>  3  2021 Ballina           Age_years_60_males   325
-#>  4  2021 Balranald         Age_years_60_males    17
-#>  5  2021 Bathurst Regional Age_years_60_males   306
-#>  6  2021 Bayside (Nsw)     Age_years_60_males   854
-#>  7  2021 Bega Valley       Age_years_60_males   332
-#>  8  2021 Bellingen         Age_years_60_males   103
-#>  9  2021 Berrigan          Age_years_60_males    68
-#> 10  2021 Blacktown         Age_years_60_males  1906
-#> # … with 555 more rows
-```
-
-Data point or "attribute" names sometimes change from Census to Census. For this purpose, the *attribute* can be either a vector or strings or a named list, containing all equivalent attribute names. For instance, to get the number of 60-year-old men and women across all censuses (all years included by default):
 
 
 ```r
 
 get_census_summary(table_number = "04",
-                   attributes = list("60 year old male"=c("Age_years_60_males","Age (Years): 60_males"),
+                   attribute = list("60 year old male"=c("Age_years_60_males","Age (Years): 60_males"),
                                      "60 year old female"=c("Age_years_60_males","Age (Years): 60_females")),
                    geo_structure = "LGA")
-#> # A tibble: 3,075 × 4
-#>     Year Unit               Attribute          Value
-#>    <dbl> <chr>              <chr>              <dbl>
-#>  1  2006 Unincorporated Act 60 year old male    1702
-#>  2  2006 Unincorporated Act 60 year old female  1588
-#>  3  2006 No Usual Address   60 year old male       3
-#>  4  2006 No Usual Address   60 year old female     3
-#>  5  2006 Albury             60 year old male     229
-#>  6  2006 Albury             60 year old female   217
-#>  7  2006 Armidale Dumaresq  60 year old male     112
-#>  8  2006 Armidale Dumaresq  60 year old female   122
-#>  9  2006 Ashfield           60 year old male     164
-#> 10  2006 Ashfield           60 year old female   157
+#> ERROR : [EBUSY] Failed to remove 'C:/Users/carlo/OneDrive/Documents/.auscensus_cache/LGA_Vic_B04_A.csv': resource busy or locked 
+#> ERROR : [EBUSY] Failed to remove 'C:/Users/carlo/OneDrive/Documents/.auscensus_cache/2011Census_B04A_AUST_LGA_short.csv': resource busy or locked 
+#> ERROR : [EBUSY] Failed to remove 'C:/Users/carlo/OneDrive/Documents/.auscensus_cache/2016Census_G04A_AUS_LGA.csv': resource busy or locked 
+#> ERROR : [EBUSY] Failed to remove 'C:/Users/carlo/OneDrive/Documents/.auscensus_cache/2021Census_G04A_AUST_LGA.csv': resource busy or locked
+#> # A tibble: 3,075 × 5
+#>    Census_Code Unit               Year Attribute          Value
+#>    <chr>       <chr>             <dbl> <chr>              <int>
+#>  1 LGA10050    Albury             2006 60 year old female   217
+#>  2 LGA10050    Albury             2006 60 year old male     229
+#>  3 LGA10110    Armidale Dumaresq  2006 60 year old female   122
+#>  4 LGA10110    Armidale Dumaresq  2006 60 year old male     112
+#>  5 LGA10150    Ashfield           2006 60 year old female   157
+#>  6 LGA10150    Ashfield           2006 60 year old male     164
+#>  7 LGA10200    Auburn             2006 60 year old female   210
+#>  8 LGA10200    Auburn             2006 60 year old male     283
+#>  9 LGA10250    Ballina            2006 60 year old female   217
+#> 10 LGA10250    Ballina            2006 60 year old male     230
 #> # … with 3,065 more rows
 ```
 
@@ -236,27 +223,53 @@ Finally, this function contains two more parameters of interest: *geo_units* fil
 ```r
 
 get_census_summary(table_number = "04",
-                   attributes = list("60 year old male"=c("Age_years_60_males","Age (Years): 60_males"),
+                   attribute = list("60 year old male"=c("Age_years_60_males","Age (Years): 60_males"),
                                      "60 year old female"=c("Age_years_60_males","Age (Years): 60_females")),
-                   geo_units = c("Melbourne","Stonnington","Yarra"),
+                   geo_unit_names  = c("Melbourne","Stonnington","Yarra"),
                    reference_total = list("Total"=c("Total_persons")),
                    geo_structure = "LGA")
-#> # A tibble: 15 × 6
-#>     Year Unit        Attribute          Value  Total Percentage
-#>    <dbl> <chr>       <chr>              <dbl>  <dbl>      <dbl>
-#>  1  2006 Melbourne   60 year old male     306  71380    0.00429
-#>  2  2006 Melbourne   60 year old female   234  71380    0.00328
-#>  3  2006 Stonnington 60 year old male     473  89882    0.00526
-#>  4  2006 Stonnington 60 year old female   498  89882    0.00554
-#>  5  2006 Yarra       60 year old male     266  69330    0.00384
-#>  6  2006 Yarra       60 year old female   295  69330    0.00426
-#>  7  2011 Melbourne   60 year old male     313  93626    0.00334
-#>  8  2011 Stonnington 60 year old male     431  93145    0.00463
-#>  9  2011 Yarra       60 year old male     332  74090    0.00448
-#> 10  2016 Melbourne   60 year old male     379 135959    0.00279
-#> 11  2016 Stonnington 60 year old male     444 103832    0.00428
-#> 12  2016 Yarra       60 year old male     375  86657    0.00433
-#> 13  2021 Melbourne   60 year old male     492 149615    0.00329
-#> 14  2021 Stonnington 60 year old male     528 104703    0.00504
-#> 15  2021 Yarra       60 year old male     425  90114    0.00472
+#> ERROR : [EBUSY] Failed to remove 'C:/Users/carlo/OneDrive/Documents/.auscensus_cache/2016Census_G04A_AUS_LGA.csv': resource busy or locked 
+#> ERROR : [EBUSY] Failed to remove 'C:/Users/carlo/OneDrive/Documents/.auscensus_cache/LGA_Vic_B04_A.csv': resource busy or locked 
+#> ERROR : [EBUSY] Failed to remove 'C:/Users/carlo/OneDrive/Documents/.auscensus_cache/2011Census_B04A_AUST_LGA_short.csv': resource busy or locked 
+#> ERROR : [EBUSY] Failed to remove 'C:/Users/carlo/OneDrive/Documents/.auscensus_cache/2016Census_G04A_AUS_LGA.csv': resource busy or locked 
+#> ERROR : [EBUSY] Failed to remove 'C:/Users/carlo/OneDrive/Documents/.auscensus_cache/2021Census_G04A_AUST_LGA.csv': resource busy or locked
+#> # A tibble: 15 × 7
+#>    Census_Code Unit         Year Attribute          Value  Total Percentage
+#>    <chr>       <chr>       <dbl> <chr>              <int>  <int>      <dbl>
+#>  1 LGA24600    Melbourne    2006 60 year old female   234  71380    0.00328
+#>  2 LGA24600    Melbourne    2006 60 year old male     306  71380    0.00429
+#>  3 LGA26350    Stonnington  2006 60 year old female   498  89882    0.00554
+#>  4 LGA26350    Stonnington  2006 60 year old male     473  89882    0.00526
+#>  5 LGA27350    Yarra        2006 60 year old female   295  69330    0.00426
+#>  6 LGA27350    Yarra        2006 60 year old male     266  69330    0.00384
+#>  7 LGA24600    Melbourne    2011 60 year old male     313  93626    0.00334
+#>  8 LGA26350    Stonnington  2011 60 year old male     431  93145    0.00463
+#>  9 LGA27350    Yarra        2011 60 year old male     332  74090    0.00448
+#> 10 LGA24600    Melbourne    2016 60 year old male     379 135959    0.00279
+#> 11 LGA26350    Stonnington  2016 60 year old male     444 103832    0.00428
+#> 12 LGA27350    Yarra        2016 60 year old male     375  86657    0.00433
+#> 13 LGA24600    Melbourne    2021 60 year old male     492 149615    0.00329
+#> 14 LGA26350    Stonnington  2021 60 year old male     528 104703    0.00504
+#> 15 LGA27350    Yarra        2021 60 year old male     425  90114    0.00472
+```
+
+## Creating attributes list
+
+Sometimes lists of attributes can be very big, consolidating multiple statistics into one category (i.e. aggregate all places of birth by continent).
+To facilitate the process, *attribute_tibble_to_list()* can take the two first columns of a data frame and convert them to the desired format:
+
+
+```r
+attributes <- tribble(~Census_stat, ~ Group,
+                     "Age_years_60_males","60 year old male",
+                     "Age (Years): 60_males","60 year old male",
+                     "Age_years_60_males","60 year old female",
+                    "Age (Years): 60_females","60 year old female")
+
+attribute_tibble_to_list(attributes)
+#> $`60 year old male`
+#> [1] "Age_years_60_males"    "Age (Years): 60_males"
+#> 
+#> $`60 year old female`
+#> [1] "Age_years_60_males"      "Age (Years): 60_females"
 ```

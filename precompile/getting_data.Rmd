@@ -58,7 +58,7 @@ Please note that even though the table names have changed from year to year, all
 Once the table has been selected, *list_census_attributes()* can be used to select a data point. Since tables can contain many attributes, thus this function also allows filtering the results by a regular expression. For instance, if we pick table *04* (Age by Sex) and want to find the data points for 60-year-olds, plus the total, we can use the below command.
 
 ```{r}
-list_census_attributes(number="04",table_name_regex = "60|[Tt]otal")
+list_census_attributes(number="04",attribute_regex = "60|[Tt]otal")
 ```
 
 To get which geographical structures are available, *list_census_geo_types()* can help. Once selected an appropriate value, *list_census_geo()* can be used to search for particular divisions. In the example below, we are confirming if data is available for three inner-Melbourne Local Government areas.
@@ -75,12 +75,13 @@ Please note that the above functions only show data for the *available* data pac
 
 ## Retrieving Census Data
 
-Once the questions have been resolved, it is possible to use {auscensus} to retrieve the data with *get_census_data()*. This function will present the result for each {table, year, geopgrahy} combination as a different element within a list. For example:
+Once the questions have been resolved, it is possible to use {auscensus} to retrieve the data with *get_census_data()*. This function will present the result for each {table, year, geography} combination as a different element within a list. By default the function does not return data but a parquet binding function - this can be changes by setting *collect_data = TRUE*. For example:
 
 ```{r}
 
 data <- get_census_data(census_table = list_census_tables("04"),
-                        geo_structure = "LGA")
+                        geo_structure = "LGA",
+                        collect_data = TRUE)
   
 names(data)   
 
@@ -90,26 +91,19 @@ names(data)
 data$`2006_LGA_B04`
 ```
 
+Note: Be mindful some tables are quite large!
+
 By default, this command will store each table in a parquet file in the cache by directory if you want to stop that from happening use the argument *cache=FALSE*. Similarly, its default behaviour is to read data from cached files before extracting them from the data pack. If you want to ignore the cache, use *ignore_cache=TRUE*.
 
 ## Getting ready to use summaries
 
-Although *get_census_data()*, provides great flexibility for data processing, in most cases, it is just of interest to get just a table with a limited number of variables for analysis. For this purpose, this package provides *get_census_summary()*. For instance, if we are only interested in getting the numbers for 60-year-old men by LGA in the 2021 census (see above), we can use:
+Although *get_census_data()*, provides great flexibility for data processing, in most cases, it is just of interest to get just a table with a limited number of variables for analysis. For this purpose, this package provides *get_census_summary()*. For instance, if we are only interested in getting the numbers for 60-year-olds  by LGA in the 2021 census (see above), we can use:
+
 
 ```{r}
 
 get_census_summary(table_number = "04",
-                   attributes = "Age_years_60_males",
-                   geo_structure = "LGA",
-                   selected_years = "2021")
-```
-
-Data point or "attribute" names sometimes change from Census to Census. For this purpose, the *attribute* can be either a vector or strings or a named list, containing all equivalent attribute names. For instance, to get the number of 60-year-old men and women across all censuses (all years included by default):
-
-```{r}
-
-get_census_summary(table_number = "04",
-                   attributes = list("60 year old male"=c("Age_years_60_males","Age (Years): 60_males"),
+                   attribute = list("60 year old male"=c("Age_years_60_males","Age (Years): 60_males"),
                                      "60 year old female"=c("Age_years_60_males","Age (Years): 60_females")),
                    geo_structure = "LGA")
 
@@ -120,9 +114,25 @@ Finally, this function contains two more parameters of interest: *geo_units* fil
 ```{r}
 
 get_census_summary(table_number = "04",
-                   attributes = list("60 year old male"=c("Age_years_60_males","Age (Years): 60_males"),
+                   attribute = list("60 year old male"=c("Age_years_60_males","Age (Years): 60_males"),
                                      "60 year old female"=c("Age_years_60_males","Age (Years): 60_females")),
-                   geo_units = c("Melbourne","Stonnington","Yarra"),
+                   geo_unit_names  = c("Melbourne","Stonnington","Yarra"),
                    reference_total = list("Total"=c("Total_persons")),
                    geo_structure = "LGA")
+```
+
+## Creating attributes list
+
+Sometimes lists of attributes can be very big, consolidating multiple statistics into one category (i.e. aggregate all places of birth by continent).
+To facilitate the process, *attribute_tibble_to_list()* can take the two first columns of a data frame and convert them to the desired format:
+
+```{r}
+attributes <- tribble(~Census_stat, ~ Group,
+                     "Age_years_60_males","60 year old male",
+                     "Age (Years): 60_males","60 year old male",
+                     "Age_years_60_males","60 year old female",
+                    "Age (Years): 60_females","60 year old female")
+
+attribute_tibble_to_list(attributes)
+
 ```

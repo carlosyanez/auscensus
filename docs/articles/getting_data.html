@@ -34,7 +34,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">auscensus</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.1.0000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.1.0010</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -49,8 +49,9 @@
 <li class="active nav-item dropdown">
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
-    <a class="dropdown-item" href="../articles/getting_data.html">Auscensus - Getting Data</a>
-    <a class="dropdown-item" href="../articles/setup.html">Auscensus - Setup</a>
+    <a class="dropdown-item" href="../articles/setup.html">Setup</a>
+    <a class="dropdown-item" href="../articles/getting_data.html">Getting data</a>
+    <a class="dropdown-item" href="../articles/complex_case.html">A complex use case</a>
   </div>
 </li>
       </ul>
@@ -81,7 +82,7 @@
                         <h4 data-toc-skip class="author">Carlos YANEZ
 SANTIBANEZ</h4>
             
-            <h4 data-toc-skip class="date">2022-11-28</h4>
+            <h4 data-toc-skip class="date">2023-01-14</h4>
       
       
       <div class="d-none name"><code>getting_data.Rmd</code></div>
@@ -158,7 +159,7 @@ regular expression. For instance, if we pick table <em>04</em> (Age by
 Sex) and want to find the data points for 60-year-olds, plus the total,
 we can use the below command.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/list_census_attributes.html">list_census_attributes</a></span><span class="op">(</span>number<span class="op">=</span><span class="st">"04"</span>,table_name_regex <span class="op">=</span> <span class="st">"60|[Tt]otal"</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/list_census_attributes.html">list_census_attributes</a></span><span class="op">(</span>number<span class="op">=</span><span class="st">"04"</span>,attribute_regex <span class="op">=</span> <span class="st">"60|[Tt]otal"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; # A tibble: 15 × 6</span></span>
 <span><span class="co">#&gt;    Table Attribute                        `2021` `2016` `2011` `2006`</span></span>
 <span><span class="co">#&gt;    &lt;chr&gt; &lt;chr&gt;                            &lt;lgl&gt;  &lt;lgl&gt;  &lt;lgl&gt;  &lt;lgl&gt; </span></span>
@@ -217,37 +218,45 @@ associated year won’t be presented in the results.</p>
 </h2>
 <p>Once the questions have been resolved, it is possible to use
 {auscensus} to retrieve the data with <em>get_census_data()</em>. This
-function will present the result for each {table, year, geopgrahy}
-combination as a different element within a list. For example:</p>
+function will present the result for each {table, year, geography}
+combination as a different element within a list. By default the
+function does not return data but a parquet binding function - this can
+be changes by setting <em>collect_data = TRUE</em>. For example:</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_census_data.html">get_census_data</a></span><span class="op">(</span>census_table <span class="op">=</span> <span class="fu"><a href="../reference/list_census_tables.html">list_census_tables</a></span><span class="op">(</span><span class="st">"04"</span><span class="op">)</span>,</span>
-<span>                        geo_structure <span class="op">=</span> <span class="st">"LGA"</span><span class="op">)</span></span>
+<span>                        geo_structure <span class="op">=</span> <span class="st">"LGA"</span>,</span>
+<span>                        collect_data <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="co">#&gt; ERROR : [EBUSY] Failed to remove 'C:/Users/carlo/OneDrive/Documents/.auscensus_cache/LGA_Vic_B04_A.csv': resource busy or locked </span></span>
+<span><span class="co">#&gt; ERROR : [EBUSY] Failed to remove 'C:/Users/carlo/OneDrive/Documents/.auscensus_cache/2011Census_B04A_AUST_LGA_short.csv': resource busy or locked </span></span>
+<span><span class="co">#&gt; ERROR : [EBUSY] Failed to remove 'C:/Users/carlo/OneDrive/Documents/.auscensus_cache/2016Census_G04A_AUS_LGA.csv': resource busy or locked </span></span>
+<span><span class="co">#&gt; ERROR : [EBUSY] Failed to remove 'C:/Users/carlo/OneDrive/Documents/.auscensus_cache/2021Census_G04A_AUST_LGA.csv': resource busy or locked</span></span>
 <span>  </span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span>   </span>
 <span><span class="co">#&gt; [1] "2006_LGA_B04" "2011_LGA_B04" "2016_LGA_G04" "2021_LGA_G04"</span></span></code></pre></div>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">data</span><span class="op">$</span><span class="va">`2006_LGA_B04`</span></span>
 <span><span class="co">#&gt; # A tibble: 685 × 309</span></span>
-<span><span class="co">#&gt;     Year Unit     Censu…¹ Age (…² Age (…³ Age (…⁴ Age (…⁵ Age (…⁶ Age (…⁷ Age (…⁸ Age (…⁹ Age (…˟ Age (…˟ Age (…˟ Age (…˟ Age (…˟ Age (…˟ Age (…˟ Age (…˟ Age (…˟ Age (…˟</span></span>
-<span><span class="co">#&gt;    &lt;dbl&gt; &lt;chr&gt;    &lt;chr&gt;     &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;</span></span>
-<span><span class="co">#&gt;  1  2006 Unincor… LGA893…    2214    2121    4335    2018    1948    3966    2091    1947    4038    2033    1856    3889    1926    1926    3852   10282    9798   20080</span></span>
-<span><span class="co">#&gt;  2  2006 No Usua… LGA894…       6       4      10       5       7      12       6       3       9       4       3       7       5       4       9      26      21      47</span></span>
-<span><span class="co">#&gt;  3  2006 Albury   LGA100…     337     305     642     313     307     620     267     286     553     309     296     605     298     296     594    1524    1490    3014</span></span>
-<span><span class="co">#&gt;  4  2006 Armidal… LGA101…     137     144     281     132     128     260     146     127     273     125     129     254     164     132     296     704     660    1364</span></span>
-<span><span class="co">#&gt;  5  2006 Ashfield LGA101…     265     246     511     232     200     432     219     209     428     235     183     418     211     210     421    1162    1048    2210</span></span>
-<span><span class="co">#&gt;  6  2006 Auburn   LGA102…     541     562    1103     545     468    1013     510     473     983     457     458     915     463     422     885    2516    2383    4899</span></span>
-<span><span class="co">#&gt;  7  2006 Ballina  LGA102…     191     197     388     190     176     366     218     194     412     197     207     404     219     223     442    1015     997    2012</span></span>
-<span><span class="co">#&gt;  8  2006 Balrana… LGA103…       8      16      24      28      12      40      19      13      32      16      21      37      16      14      30      87      76     163</span></span>
-<span><span class="co">#&gt;  9  2006 Banksto… LGA103…    1331    1240    2571    1337    1239    2576    1286    1241    2527    1367    1215    2582    1257    1195    2452    6578    6130   12708</span></span>
-<span><span class="co">#&gt; 10  2006 Bathurs… LGA104…     276     227     503     225     222     447     240     223     463     248     202     450     251     241     492    1240    1115    2355</span></span>
-<span><span class="co">#&gt; # … with 675 more rows, 288 more variables: `Age (Years): 5_males` &lt;dbl&gt;, `Age (Years): 5_females` &lt;dbl&gt;, `Age (Years): 5_persons` &lt;dbl&gt;, `Age (Years): 6_males` &lt;dbl&gt;,</span></span>
-<span><span class="co">#&gt; #   `Age (Years): 6_females` &lt;dbl&gt;, `Age (Years): 6_persons` &lt;dbl&gt;, `Age (Years): 7_males` &lt;dbl&gt;, `Age (Years): 7_females` &lt;dbl&gt;, `Age (Years): 7_persons` &lt;dbl&gt;,</span></span>
-<span><span class="co">#&gt; #   `Age (Years): 8_males` &lt;dbl&gt;, `Age (Years): 8_females` &lt;dbl&gt;, `Age (Years): 8_persons` &lt;dbl&gt;, `Age (Years): 9_males` &lt;dbl&gt;, `Age (Years): 9_females` &lt;dbl&gt;,</span></span>
-<span><span class="co">#&gt; #   `Age (Years): 9_persons` &lt;dbl&gt;, `Age (Years): 5-9 Years_males` &lt;dbl&gt;, `Age (Years): 5-9 Years_females` &lt;dbl&gt;, `Age (Years): 5-9 Years_persons` &lt;dbl&gt;,</span></span>
-<span><span class="co">#&gt; #   `Age (Years): 10_males` &lt;dbl&gt;, `Age (Years): 10_females` &lt;dbl&gt;, `Age (Years): 10_persons` &lt;dbl&gt;, `Age (Years): 11_males` &lt;dbl&gt;, `Age (Years): 11_females` &lt;dbl&gt;,</span></span>
-<span><span class="co">#&gt; #   `Age (Years): 11_persons` &lt;dbl&gt;, `Age (Years): 12_males` &lt;dbl&gt;, `Age (Years): 12_females` &lt;dbl&gt;, `Age (Years): 12_persons` &lt;dbl&gt;, `Age (Years): 13_males` &lt;dbl&gt;,</span></span>
-<span><span class="co">#&gt; #   `Age (Years): 13_females` &lt;dbl&gt;, `Age (Years): 13_persons` &lt;dbl&gt;, `Age (Years): 14_males` &lt;dbl&gt;, `Age (Years): 14_females` &lt;dbl&gt;, `Age (Years): 14_persons` &lt;dbl&gt;, …</span></span></code></pre></div>
+<span><span class="co">#&gt;     Year Census_Code Unit  Age (…¹ Age (…² Age (…³ Age (…⁴ Age (…⁵ Age (…⁶ Age (…⁷ Age (…⁸ Age (…⁹ Age (…˟ Age (…˟ Age (…˟ Age (…˟ Age (…˟ Age (…˟ Age (…˟</span></span>
+<span><span class="co">#&gt;    &lt;dbl&gt; &lt;chr&gt;       &lt;chr&gt;   &lt;int&gt;   &lt;int&gt;   &lt;int&gt;   &lt;int&gt;   &lt;int&gt;   &lt;int&gt;   &lt;int&gt;   &lt;int&gt;   &lt;int&gt;   &lt;int&gt;   &lt;int&gt;   &lt;int&gt;   &lt;int&gt;   &lt;int&gt;   &lt;int&gt;   &lt;int&gt;</span></span>
+<span><span class="co">#&gt;  1  2006 LGA89399    Unin…    2121    9798   10282   20080    2214    4335   10436   21360      16       7   10924      23    2021    2068    4089    2094</span></span>
+<span><span class="co">#&gt;  2  2006 LGA89499    No U…       4      21      26      47       6      10      18      26       0       0       8       0       3       0       3       3</span></span>
+<span><span class="co">#&gt;  3  2006 LGA10050    Albu…     305    1490    1524    3014     337     642    1675    3422       8       4    1747      12     305     326     631     357</span></span>
+<span><span class="co">#&gt;  4  2006 LGA10110    Armi…     144     660     704    1364     137     281     910    1809       0       0     899       0     163     157     320     173</span></span>
+<span><span class="co">#&gt;  5  2006 LGA10150    Ashf…     246    1048    1162    2210     265     511     943    1910      14       0     967      14     199     201     400     171</span></span>
+<span><span class="co">#&gt;  6  2006 LGA10200    Aubu…     562    2383    2516    4899     541    1103    2049    4223       0       5    2174       5     420     451     871     434</span></span>
+<span><span class="co">#&gt;  7  2006 LGA10250    Ball…     197     997    1015    2012     191     388    1370    2754       7       0    1384       7     256     273     529     246</span></span>
+<span><span class="co">#&gt;  8  2006 LGA10300    Balr…      16      76      87     163       8      24      82     175       0       0      93       0      15      15      30      18</span></span>
+<span><span class="co">#&gt;  9  2006 LGA10350    Bank…    1240    6130    6578   12708    1331    2571    5957   12425      14       3    6468      17    1202    1257    2459    1189</span></span>
+<span><span class="co">#&gt; 10  2006 LGA10470    Bath…     227    1115    1240    2355     276     503    1272    2609       6       0    1337       6     243     254     497     234</span></span>
+<span><span class="co">#&gt; # … with 675 more rows, 290 more variables: `Age (Years) 11_males` &lt;int&gt;, `Age (Years) 11_persons` &lt;int&gt;, `Age (Years) 12_females` &lt;int&gt;,</span></span>
+<span><span class="co">#&gt; #   `Age (Years) 12_males` &lt;int&gt;, `Age (Years) 12_persons` &lt;int&gt;, `Age (Years) 13_females` &lt;int&gt;, `Age (Years) 13_males` &lt;int&gt;,</span></span>
+<span><span class="co">#&gt; #   `Age (Years) 13_persons` &lt;int&gt;, `Age (Years) 14_females` &lt;int&gt;, `Age (Years) 14_males` &lt;int&gt;, `Age (Years) 14_persons` &lt;int&gt;,</span></span>
+<span><span class="co">#&gt; #   `Age (Years) 15-19 Years_females` &lt;int&gt;, `Age (Years) 15-19 Years_males` &lt;int&gt;, `Age (Years) 15-19 Years_persons` &lt;int&gt;,</span></span>
+<span><span class="co">#&gt; #   `Age (Years) 15_females` &lt;int&gt;, `Age (Years) 15_males` &lt;int&gt;, `Age (Years) 15_persons` &lt;int&gt;, `Age (Years) 16_females` &lt;int&gt;,</span></span>
+<span><span class="co">#&gt; #   `Age (Years) 16_males` &lt;int&gt;, `Age (Years) 16_persons` &lt;int&gt;, `Age (Years) 17_females` &lt;int&gt;, `Age (Years) 17_males` &lt;int&gt;,</span></span>
+<span><span class="co">#&gt; #   `Age (Years) 17_persons` &lt;int&gt;, `Age (Years) 18_females` &lt;int&gt;, `Age (Years) 18_males` &lt;int&gt;, `Age (Years) 18_persons` &lt;int&gt;, …</span></span></code></pre></div>
+<p>Note: Be mindful some tables are quite large!</p>
 <p>By default, this command will store each table in a parquet file in
 the cache by directory if you want to stop that from happening use the
 argument <em>cache=FALSE</em>. Similarly, its default behaviour is to
@@ -261,52 +270,31 @@ If you want to ignore the cache, use <em>ignore_cache=TRUE</em>.</p>
 data processing, in most cases, it is just of interest to get just a
 table with a limited number of variables for analysis. For this purpose,
 this package provides <em>get_census_summary()</em>. For instance, if we
-are only interested in getting the numbers for 60-year-old men by LGA in
+are only interested in getting the numbers for 60-year-olds by LGA in
 the 2021 census (see above), we can use:</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="fu"><a href="../reference/get_census_summary.html">get_census_summary</a></span><span class="op">(</span>table_number <span class="op">=</span> <span class="st">"04"</span>,</span>
-<span>                   attributes <span class="op">=</span> <span class="st">"Age_years_60_males"</span>,</span>
-<span>                   geo_structure <span class="op">=</span> <span class="st">"LGA"</span>,</span>
-<span>                   selected_years <span class="op">=</span> <span class="st">"2021"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; # A tibble: 565 × 4</span></span>
-<span><span class="co">#&gt;     Year Unit              Attribute          Value</span></span>
-<span><span class="co">#&gt;    &lt;dbl&gt; &lt;chr&gt;             &lt;chr&gt;              &lt;dbl&gt;</span></span>
-<span><span class="co">#&gt;  1  2021 Albury            Age_years_60_males   368</span></span>
-<span><span class="co">#&gt;  2  2021 Armidale Regional Age_years_60_males   157</span></span>
-<span><span class="co">#&gt;  3  2021 Ballina           Age_years_60_males   325</span></span>
-<span><span class="co">#&gt;  4  2021 Balranald         Age_years_60_males    17</span></span>
-<span><span class="co">#&gt;  5  2021 Bathurst Regional Age_years_60_males   306</span></span>
-<span><span class="co">#&gt;  6  2021 Bayside (Nsw)     Age_years_60_males   854</span></span>
-<span><span class="co">#&gt;  7  2021 Bega Valley       Age_years_60_males   332</span></span>
-<span><span class="co">#&gt;  8  2021 Bellingen         Age_years_60_males   103</span></span>
-<span><span class="co">#&gt;  9  2021 Berrigan          Age_years_60_males    68</span></span>
-<span><span class="co">#&gt; 10  2021 Blacktown         Age_years_60_males  1906</span></span>
-<span><span class="co">#&gt; # … with 555 more rows</span></span></code></pre></div>
-<p>Data point or “attribute” names sometimes change from Census to
-Census. For this purpose, the <em>attribute</em> can be either a vector
-or strings or a named list, containing all equivalent attribute names.
-For instance, to get the number of 60-year-old men and women across all
-censuses (all years included by default):</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="fu"><a href="../reference/get_census_summary.html">get_census_summary</a></span><span class="op">(</span>table_number <span class="op">=</span> <span class="st">"04"</span>,</span>
-<span>                   attributes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"60 year old male"</span><span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Age_years_60_males"</span>,<span class="st">"Age (Years): 60_males"</span><span class="op">)</span>,</span>
+<span>                   attribute <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"60 year old male"</span><span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Age_years_60_males"</span>,<span class="st">"Age (Years): 60_males"</span><span class="op">)</span>,</span>
 <span>                                     <span class="st">"60 year old female"</span><span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Age_years_60_males"</span>,<span class="st">"Age (Years): 60_females"</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>                   geo_structure <span class="op">=</span> <span class="st">"LGA"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; # A tibble: 3,075 × 4</span></span>
-<span><span class="co">#&gt;     Year Unit               Attribute          Value</span></span>
-<span><span class="co">#&gt;    &lt;dbl&gt; &lt;chr&gt;              &lt;chr&gt;              &lt;dbl&gt;</span></span>
-<span><span class="co">#&gt;  1  2006 Unincorporated Act 60 year old male    1702</span></span>
-<span><span class="co">#&gt;  2  2006 Unincorporated Act 60 year old female  1588</span></span>
-<span><span class="co">#&gt;  3  2006 No Usual Address   60 year old male       3</span></span>
-<span><span class="co">#&gt;  4  2006 No Usual Address   60 year old female     3</span></span>
-<span><span class="co">#&gt;  5  2006 Albury             60 year old male     229</span></span>
-<span><span class="co">#&gt;  6  2006 Albury             60 year old female   217</span></span>
-<span><span class="co">#&gt;  7  2006 Armidale Dumaresq  60 year old male     112</span></span>
-<span><span class="co">#&gt;  8  2006 Armidale Dumaresq  60 year old female   122</span></span>
-<span><span class="co">#&gt;  9  2006 Ashfield           60 year old male     164</span></span>
-<span><span class="co">#&gt; 10  2006 Ashfield           60 year old female   157</span></span>
+<span><span class="co">#&gt; ERROR : [EBUSY] Failed to remove 'C:/Users/carlo/OneDrive/Documents/.auscensus_cache/LGA_Vic_B04_A.csv': resource busy or locked </span></span>
+<span><span class="co">#&gt; ERROR : [EBUSY] Failed to remove 'C:/Users/carlo/OneDrive/Documents/.auscensus_cache/2011Census_B04A_AUST_LGA_short.csv': resource busy or locked </span></span>
+<span><span class="co">#&gt; ERROR : [EBUSY] Failed to remove 'C:/Users/carlo/OneDrive/Documents/.auscensus_cache/2016Census_G04A_AUS_LGA.csv': resource busy or locked </span></span>
+<span><span class="co">#&gt; ERROR : [EBUSY] Failed to remove 'C:/Users/carlo/OneDrive/Documents/.auscensus_cache/2021Census_G04A_AUST_LGA.csv': resource busy or locked</span></span>
+<span><span class="co">#&gt; # A tibble: 3,075 × 5</span></span>
+<span><span class="co">#&gt;    Census_Code Unit               Year Attribute          Value</span></span>
+<span><span class="co">#&gt;    &lt;chr&gt;       &lt;chr&gt;             &lt;dbl&gt; &lt;chr&gt;              &lt;int&gt;</span></span>
+<span><span class="co">#&gt;  1 LGA10050    Albury             2006 60 year old female   217</span></span>
+<span><span class="co">#&gt;  2 LGA10050    Albury             2006 60 year old male     229</span></span>
+<span><span class="co">#&gt;  3 LGA10110    Armidale Dumaresq  2006 60 year old female   122</span></span>
+<span><span class="co">#&gt;  4 LGA10110    Armidale Dumaresq  2006 60 year old male     112</span></span>
+<span><span class="co">#&gt;  5 LGA10150    Ashfield           2006 60 year old female   157</span></span>
+<span><span class="co">#&gt;  6 LGA10150    Ashfield           2006 60 year old male     164</span></span>
+<span><span class="co">#&gt;  7 LGA10200    Auburn             2006 60 year old female   210</span></span>
+<span><span class="co">#&gt;  8 LGA10200    Auburn             2006 60 year old male     283</span></span>
+<span><span class="co">#&gt;  9 LGA10250    Ballina            2006 60 year old female   217</span></span>
+<span><span class="co">#&gt; 10 LGA10250    Ballina            2006 60 year old male     230</span></span>
 <span><span class="co">#&gt; # … with 3,065 more rows</span></span></code></pre></div>
 <p>Finally, this function contains two more parameters of interest:
 <em>geo_units</em> filters the results by giving a vector of names;
@@ -316,32 +304,59 @@ attributes as a percentage of said total value. For instance, if we want
 to narrow the above results to the LGAs of Melbourne, Stonnington and
 Yarra, and present the results as a percentage of the total population,
 we have:</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="fu"><a href="../reference/get_census_summary.html">get_census_summary</a></span><span class="op">(</span>table_number <span class="op">=</span> <span class="st">"04"</span>,</span>
-<span>                   attributes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"60 year old male"</span><span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Age_years_60_males"</span>,<span class="st">"Age (Years): 60_males"</span><span class="op">)</span>,</span>
+<span>                   attribute <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"60 year old male"</span><span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Age_years_60_males"</span>,<span class="st">"Age (Years): 60_males"</span><span class="op">)</span>,</span>
 <span>                                     <span class="st">"60 year old female"</span><span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Age_years_60_males"</span>,<span class="st">"Age (Years): 60_females"</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>                   geo_units <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Melbourne"</span>,<span class="st">"Stonnington"</span>,<span class="st">"Yarra"</span><span class="op">)</span>,</span>
+<span>                   geo_unit_names  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Melbourne"</span>,<span class="st">"Stonnington"</span>,<span class="st">"Yarra"</span><span class="op">)</span>,</span>
 <span>                   reference_total <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"Total"</span><span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Total_persons"</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>                   geo_structure <span class="op">=</span> <span class="st">"LGA"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; # A tibble: 15 × 6</span></span>
-<span><span class="co">#&gt;     Year Unit        Attribute          Value  Total Percentage</span></span>
-<span><span class="co">#&gt;    &lt;dbl&gt; &lt;chr&gt;       &lt;chr&gt;              &lt;dbl&gt;  &lt;dbl&gt;      &lt;dbl&gt;</span></span>
-<span><span class="co">#&gt;  1  2006 Melbourne   60 year old male     306  71380    0.00429</span></span>
-<span><span class="co">#&gt;  2  2006 Melbourne   60 year old female   234  71380    0.00328</span></span>
-<span><span class="co">#&gt;  3  2006 Stonnington 60 year old male     473  89882    0.00526</span></span>
-<span><span class="co">#&gt;  4  2006 Stonnington 60 year old female   498  89882    0.00554</span></span>
-<span><span class="co">#&gt;  5  2006 Yarra       60 year old male     266  69330    0.00384</span></span>
-<span><span class="co">#&gt;  6  2006 Yarra       60 year old female   295  69330    0.00426</span></span>
-<span><span class="co">#&gt;  7  2011 Melbourne   60 year old male     313  93626    0.00334</span></span>
-<span><span class="co">#&gt;  8  2011 Stonnington 60 year old male     431  93145    0.00463</span></span>
-<span><span class="co">#&gt;  9  2011 Yarra       60 year old male     332  74090    0.00448</span></span>
-<span><span class="co">#&gt; 10  2016 Melbourne   60 year old male     379 135959    0.00279</span></span>
-<span><span class="co">#&gt; 11  2016 Stonnington 60 year old male     444 103832    0.00428</span></span>
-<span><span class="co">#&gt; 12  2016 Yarra       60 year old male     375  86657    0.00433</span></span>
-<span><span class="co">#&gt; 13  2021 Melbourne   60 year old male     492 149615    0.00329</span></span>
-<span><span class="co">#&gt; 14  2021 Stonnington 60 year old male     528 104703    0.00504</span></span>
-<span><span class="co">#&gt; 15  2021 Yarra       60 year old male     425  90114    0.00472</span></span></code></pre></div>
+<span><span class="co">#&gt; ERROR : [EBUSY] Failed to remove 'C:/Users/carlo/OneDrive/Documents/.auscensus_cache/2016Census_G04A_AUS_LGA.csv': resource busy or locked </span></span>
+<span><span class="co">#&gt; ERROR : [EBUSY] Failed to remove 'C:/Users/carlo/OneDrive/Documents/.auscensus_cache/LGA_Vic_B04_A.csv': resource busy or locked </span></span>
+<span><span class="co">#&gt; ERROR : [EBUSY] Failed to remove 'C:/Users/carlo/OneDrive/Documents/.auscensus_cache/2011Census_B04A_AUST_LGA_short.csv': resource busy or locked </span></span>
+<span><span class="co">#&gt; ERROR : [EBUSY] Failed to remove 'C:/Users/carlo/OneDrive/Documents/.auscensus_cache/2016Census_G04A_AUS_LGA.csv': resource busy or locked </span></span>
+<span><span class="co">#&gt; ERROR : [EBUSY] Failed to remove 'C:/Users/carlo/OneDrive/Documents/.auscensus_cache/2021Census_G04A_AUST_LGA.csv': resource busy or locked</span></span>
+<span><span class="co">#&gt; # A tibble: 15 × 7</span></span>
+<span><span class="co">#&gt;    Census_Code Unit         Year Attribute          Value  Total Percentage</span></span>
+<span><span class="co">#&gt;    &lt;chr&gt;       &lt;chr&gt;       &lt;dbl&gt; &lt;chr&gt;              &lt;int&gt;  &lt;int&gt;      &lt;dbl&gt;</span></span>
+<span><span class="co">#&gt;  1 LGA24600    Melbourne    2006 60 year old female   234  71380    0.00328</span></span>
+<span><span class="co">#&gt;  2 LGA24600    Melbourne    2006 60 year old male     306  71380    0.00429</span></span>
+<span><span class="co">#&gt;  3 LGA26350    Stonnington  2006 60 year old female   498  89882    0.00554</span></span>
+<span><span class="co">#&gt;  4 LGA26350    Stonnington  2006 60 year old male     473  89882    0.00526</span></span>
+<span><span class="co">#&gt;  5 LGA27350    Yarra        2006 60 year old female   295  69330    0.00426</span></span>
+<span><span class="co">#&gt;  6 LGA27350    Yarra        2006 60 year old male     266  69330    0.00384</span></span>
+<span><span class="co">#&gt;  7 LGA24600    Melbourne    2011 60 year old male     313  93626    0.00334</span></span>
+<span><span class="co">#&gt;  8 LGA26350    Stonnington  2011 60 year old male     431  93145    0.00463</span></span>
+<span><span class="co">#&gt;  9 LGA27350    Yarra        2011 60 year old male     332  74090    0.00448</span></span>
+<span><span class="co">#&gt; 10 LGA24600    Melbourne    2016 60 year old male     379 135959    0.00279</span></span>
+<span><span class="co">#&gt; 11 LGA26350    Stonnington  2016 60 year old male     444 103832    0.00428</span></span>
+<span><span class="co">#&gt; 12 LGA27350    Yarra        2016 60 year old male     375  86657    0.00433</span></span>
+<span><span class="co">#&gt; 13 LGA24600    Melbourne    2021 60 year old male     492 149615    0.00329</span></span>
+<span><span class="co">#&gt; 14 LGA26350    Stonnington  2021 60 year old male     528 104703    0.00504</span></span>
+<span><span class="co">#&gt; 15 LGA27350    Yarra        2021 60 year old male     425  90114    0.00472</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="creating-attributes-list">Creating attributes list<a class="anchor" aria-label="anchor" href="#creating-attributes-list"></a>
+</h2>
+<p>Sometimes lists of attributes can be very big, consolidating multiple
+statistics into one category (i.e. aggregate all places of birth by
+continent). To facilitate the process,
+<em>attribute_tibble_to_list()</em> can take the two first columns of a
+data frame and convert them to the desired format:</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">attributes</span> <span class="op">&lt;-</span> <span class="fu">tribble</span><span class="op">(</span><span class="op">~</span><span class="va">Census_stat</span>, <span class="op">~</span> <span class="va">Group</span>,</span>
+<span>                     <span class="st">"Age_years_60_males"</span>,<span class="st">"60 year old male"</span>,</span>
+<span>                     <span class="st">"Age (Years): 60_males"</span>,<span class="st">"60 year old male"</span>,</span>
+<span>                     <span class="st">"Age_years_60_males"</span>,<span class="st">"60 year old female"</span>,</span>
+<span>                    <span class="st">"Age (Years): 60_females"</span>,<span class="st">"60 year old female"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/attribute_tibble_to_list.html">attribute_tibble_to_list</a></span><span class="op">(</span><span class="va">attributes</span><span class="op">)</span></span>
+<span><span class="co">#&gt; $`60 year old male`</span></span>
+<span><span class="co">#&gt; [1] "Age_years_60_males"    "Age (Years): 60_males"</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $`60 year old female`</span></span>
+<span><span class="co">#&gt; [1] "Age_years_60_males"      "Age (Years): 60_females"</span></span></code></pre></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside>

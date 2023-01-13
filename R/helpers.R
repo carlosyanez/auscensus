@@ -2,26 +2,40 @@
 #' @description Little helper function that converts tibble into a list with vectors, which is the
 #' expected attributes input for get_census_summary()
 #' @param df tibble/data.frame. First column is the original value, the second the new label
-#' @param labels original labels
-#' @param groups new labels
-#' @importFrom dplyr distinct filter pull across
+#' @param original name of original attribute
+#' @param new new naming
+#' @importFrom dplyr distinct filter pull select any_of if_any
 #' @return list object
 #' @export
 #' @keywords helpers
-attribute_tibble_to_list <- function(df,labels=NULL,groups=NULL){
-  if(is.null(labels))  labels  <- colnames(df)[1]
-  if(is.null(groups))  groups  <- colnames(df)[2]
+#' @examples \dontrun{
+#' attributes <- tribble(~Census_stat, ~ Group,
+#'         "Age_years_60_males","60 year old male",
+#'          "Age (Years): 60_males","60 year old male",
+#'          "Age_years_60_males","60 year old female",
+#'          "Age (Years): 60_females","60 year old female")
 
-  levels <- df  |> distinct(across(any_of(c(groups)))) |> pull()
+#'          attribute_tibble_to_list(attributes)
+#'
+#' }
+attribute_tibble_to_list <- function(df,
+                                     original = colnames(df)[1],
+                                     new     = colnames(df)[2]){
+
+  levels <- df  |>
+            select(any_of(new)) |>
+            distinct() |>
+            pull()
+
   results <- list()
   i <-1
   for(level in levels){
 
     results[[i]]      <-  df |>
-                          filter(if_any(any_of(c(groups)), ~ .x==level))  |>
-                          select(any_of(labels))                          |>
+                          filter(if_any(any_of(new), ~ .x==level))  |>
+                          select(any_of(original)) |>
+                          distinct() |>
                           pull()
-
 
     names(results)[i] <-  level
     i <- i +1
@@ -43,8 +57,8 @@ attribute_tibble_to_list <- function(df,labels=NULL,groups=NULL){
 #' @importFrom naniar replace_with_na
 #' @importFrom rlang .data
 #' @return list object
-#' @export
 #' @keywords helpers
+#' @export
 calculate_percentage <- function(df,key_col,value_col,key_value="Total",percentage_scale=1){
 
   if(!(percentage_scale %in% c(1,100))) stop("percentage scale must by 1 or 100 (as in 100%)")

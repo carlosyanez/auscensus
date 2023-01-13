@@ -4,12 +4,12 @@
 \alias{list_census_attributes}
 \title{Get names of attributes for a given census tables, across all time}
 \usage{
-list_census_attributes(number = NULL, table_name_regex = NULL)
+list_census_attributes(number = NULL, attribute_regex = NULL)
 }
 \arguments{
 \item{number}{vector containing one or more table numbers}
 
-\item{table_name_regex}{string with a regular expression to filter table names (i.e. for all elements containing with Country : "Country")}
+\item{attribute_regex}{string with a regular expression to filter attribute names}
 }
 \value{
 tibble, showing the geo type, available for each year

@@ -21,7 +21,7 @@ library(auscensus)
 
 ```
 
-{Auscensus}'s goal is to provide an easy interface to access data from Australian Census data packs. However, each data pack is a large file and thus they have not been included in the package. "Metadata" has been uploaded [here](https://github.com/carlosyanez/auscensus/releases/tag/aux_files) and is retrieved by the package as needed but **data files are not included**. To get things ready for data extraction, follow the below steps.
+{auscensus}'s goal is to provide an easy interface to access data from Australian Census data packs. However, each data pack is a large file and thus they have not been included in the package. "Metadata" has been uploaded [here](https://github.com/carlosyanez/auscensus/releases/tag/aux_files) and is retrieved by the package as needed but **data files are not included**. To get things ready for data extraction, follow the below steps.
 
 ## Download the data
 

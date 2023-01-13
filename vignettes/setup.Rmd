@@ -1,7 +1,7 @@
 ---
 title: "Auscensus - Setup"
 author: "Carlos YANEZ SANTIBANEZ"
-date: "2022-11-28"
+date: "2023-01-14"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Auscensus - Setup}
@@ -11,7 +11,7 @@ vignette: >
 
 
 
-{Auscensus}'s goal is to provide an easy interface to access data from Australian Census data packs. However, each data pack is a large file and thus they have not been included in the package. "Metadata" has been uploaded [here](https://github.com/carlosyanez/auscensus/releases/tag/aux_files) and is retrieved by the package as needed but **data files are not included**. To get things ready for data extraction, follow the below steps.
+{auscensus}'s goal is to provide an easy interface to access data from Australian Census data packs. However, each data pack is a large file and thus they have not been included in the package. "Metadata" has been uploaded [here](https://github.com/carlosyanez/auscensus/releases/tag/aux_files) and is retrieved by the package as needed but **data files are not included**. To get things ready for data extraction, follow the below steps.
 
 ## Download the data
 

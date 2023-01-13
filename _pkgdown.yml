@@ -20,7 +20,15 @@ navbar:
     left:  [home, reference,articles]
     right: [github]
   components:
-
+   articles:
+    text: Articles
+    menu:
+    - text: "Setup"
+      href: articles/setup.html
+    - text: "Getting data"
+      href: articles/getting_data.html
+    - text: "A complex use case"
+      href: articles/complex_case.html
 
 home:
   title: auscensus

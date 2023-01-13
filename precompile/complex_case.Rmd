@@ -1,0 +1,224 @@
+---
+title: "auscensus - A more complex case"
+resource_files:
+  - vignetttes/house-preference-flow*.png
+author: "Carlos YANEZ SANTIBANEZ"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{auscensus - A more complex case}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+
+knitr::opts_chunk$set(
+  warning=  FALSE,
+  collapse = TRUE, comment = "#>", out.width = "100%",
+  fig.width = 7, fig.height = 4, dev = "CairoPNG", dpi = 150, fig.path = "vignettes/complex-case-",
+  message = FALSE, warning = FALSE, error = FALSE
+)
+library(ggplot2)
+library(auscensus)
+library(rhandsontable)
+
+```
+
+
+This vignette shows a more complex use case of auscensus. Let's assume we want to extract the percentage of Australian Citizens for all Commonwealth Electoral Divisions, as measured in last 4 Censuses (2006-2021).
+
+An initial exploration shows that this data can be found in table 01 (across all four censuses) - which provided an statistical summary. However, is not published aggregated by electorate across all censuses.
+
+
+```{r}
+
+#| eval: true
+
+census_tables <- list_census_tables() |>
+                 filter(Number %in% c("01")) 
+
+tables_summary <- census_tables |>
+                  select(-contains("Table")) |>
+                  pivot_longer(-Number, names_to="Year",values_to = "Value") |>
+                  filter(!is.na(Value)) |>
+                  select(-Value)
+
+
+list_census_geo_tables(year = tables_summary$Year,geo="CED|CED_2007|CED_2004",table_number = tables_summary$Number) |>
+  mutate(Year=as.character(Year)) |>
+  right_join(tables_summary, by=c("table_number"="Number","Year"="Year")) |>
+  rhandsontable(readOnly = TRUE) |>
+  hot_cols(columnSorting = TRUE)
+
+```
+
+
+Therefore, we will retrieve the data from the lowest statistical unit. However, SA1 were not available in 2006 - where the smallest area was a "CD".
+
+```{r}
+
+#| eval: true
+
+list_census_geo_tables(year = tables_summary$Year,geo=c("SA1|CD"),table_number = tables_summary$Number) |>
+   mutate(Year=as.character(Year)) |>
+  right_join(tables_summary, by=c("table_number"="Number","Year"="Year")) |>
+  rhandsontable(readOnly = TRUE) |>
+  hot_cols(columnSorting = TRUE)
+
+
+```
+
+The next step is to figure the attributes for the numbers of Australian citizen and total population, which are presented below:
+
+
+```{r}
+
+citizenship_attributes <- tibble()
+
+for(i in 1:nrow(tables_summary)){
+
+  table_i <- tables_summary[i,]$Number
+  year_i  <- tables_summary[i,]$Year
+
+  attr_i <- list_census_attributes(table_i) |> 
+             pivot_longer(-c(Table,Attribute),
+                           names_to="Year",values_to = "Value") |>
+              filter(Year==year_i) |>
+              filter(!is.na(Value)) |>
+              select(-Value)
+
+  citizenship_attributes <- bind_rows(attr_i,citizenship_attributes)
+
+}
+
+
+
+citizenship_attributes |> 
+  rhandsontable(readOnly = TRUE) |>
+  hot_cols(columnSorting = TRUE)
+
+```
+
+```{r}
+
+citizenship_attributes <- citizenship_attributes   |> 
+                       distinct(Attribute,Year) |>
+                      filter(str_detect(Attribute,"[Aa]ustralian")) |>
+                      filter(str_detect(Attribute,"[Pp]erson")) |>
+                      mutate(dummy=TRUE) |>
+                      pivot_wider(names_from = Year, values_from = dummy)  |>
+                      bind_rows(
+                         citizenship_attributes   |> 
+                       distinct(Attribute,Year) |>
+                      filter(str_detect(Attribute,"^[Tt]otal")) |>
+                      filter(str_detect(Attribute,"[Pp]ersons$")) |>
+                      mutate(dummy=TRUE) |>
+                      pivot_wider(names_from = Year, values_from = dummy)
+                      )
+
+
+citizenship_attributes |> 
+  rhandsontable(readOnly = TRUE) |>
+  hot_cols(columnSorting = TRUE)
+```
+
+Using *attribute_tibble_to_list*, this data frame can be converted into the required format.
+
+```{r}
+
+citizenship_attributes <- citizenship_attributes |>
+                          select(Attribute)      |>
+                          mutate(AttrNew = case_when(
+                            str_detect(Attribute,"Australian") ~ "Australian Citizens",
+                            str_detect(Attribute,"Total")      ~ "Total"
+                          ))
+
+levels <- attribute_tibble_to_list(citizenship_attributes)
+```
+
+
+Now,  we can cycle through the four censuses and extract the data. Please note that CDs and SA1s are not equivalent, but they are stored together for convenience:
+
+
+```{r}
+census_years <- c("2006","2011","2016","2021")
+
+citizenship <- tibble()
+
+for(year in census_years){
+
+  if(year=="2006"){
+    geo_structure_x <- "CD"
+  } else{
+    geo_structure_x <- "SA1"
+  }
+
+  citizenship_i <- get_census_summary(census_table = census_tables,
+                                   selected_years = year,
+                                   geo_structure=geo_structure_x,
+                                   attribute = levels) 
+
+
+  citizenship <- bind_rows(citizenship,citizenship_i)
+
+
+}
+
+rm(citizenship_i,geo_structure_x,levels,citizenship_attributes)
+
+
+
+```
+
+
+To aggregate the data,  **[aussiemaps::geo_aggregate()](https://gh.carlosyanez.id.au/aussiemaps/)** can help using area to apportion on non-overalpping cases. Then, this package's *calculate_percentage()* will take the totals from the list and calculate percentages.
+
+
+```{r}
+
+citizenship_ced<- tibble()
+codes <- c("CD_CODE_2006","SA1_7DIGITCODE_2011","SA1_7DIGITCODE_2016","SA1_CODE_2021")
+ceds  <- c("CED_NAME_2006","CED_NAME_2011","CED_NAME_2016","CED_NAME_2021")
+
+ for(i in 1:length(census_years)){
+
+   year <- as.double(census_years[i])
+
+   value_i <- citizenship |> 
+                  filter(Year==year)     |>
+                  select(-Unit)                    |>
+                  rename(!!codes[i]:="Census_Code") |>
+                  collect() |>
+                  aussiemaps::geo_aggregate(
+                              values_col="Value",
+                              original_geo=codes[i],
+                              new_geo=ceds[i],
+                              grouping_col = c("Year","Attribute"),
+                              year=census_years[i]) |>
+              rename("Unit"=ceds[i])  |>
+              filter(!is.na(Unit))    |>
+              filter(str_detect(Unit,"[Ss]hipping",TRUE))|>
+              filter(str_detect(Unit,"[Uu]sual",TRUE))   |>
+              filter(str_detect(Unit,"[Aa]pplicable",TRUE)) 
+
+
+    value_i <- value_i  |> 
+               auscensus::calculate_percentage(key_col = "Attribute",
+                                                value_col = "Value",
+                                                key_value = "Total",
+                                                percentage_scale = 100)
+
+   citizenship_ced <- bind_rows(citizenship_ced,value_i)
+
+
+ }
+
+
+citizenship_ced |>
+  select(Unit,Year,Percentage) |>
+  pivot_wider(names_from = Year, values_from = Percentage) |>
+  rhandsontable(readOnly = TRUE) |>
+  hot_cols(columnSorting = TRUE)
+
+```

@@ -107,13 +107,14 @@ load_auscensus <- function(auscensus_file,
 #' @importFrom fs path
 #' @importFrom zip  unzip
 #' @importFrom arrow open_dataset write_dataset
+#' @importFrom progressr progressor
 #' @param content_stubs content_stubs
 #' @param i i
 #' @param geo_struct geo structure
 #' @param attr attr
 #' @param avail_years available years
 #' @noRd
-import_data <- function(content_stubs,i, geo_struct,attr,avail_years){
+import_data <- function(content_stubs,i, geo_struct,attr_i,avail_years){
 
   content_i <- get_auscensus_metadata("content.zip") |>
     left_join(content_stubs |>
@@ -138,12 +139,12 @@ import_data <- function(content_stubs,i, geo_struct,attr,avail_years){
                 by=c("Year","Profiletable"="element")) |>
       filter(if_any(c("flag"),~.x==TRUE))
 
-    if(!is.null(attr)){
-      attr <- str_squish(attr)
-      attr <- str_remove_all(attr, "[^A-z|0-9|[:punct:]|\\s]")
-      attr <- str_remove_all(attr, ":")
-      attr <- str_remove_all(attr, "/")
-      attr <- str_remove_all(attr, fixed("\\"))
+    if(!is.null(attr_i)){
+      attr_i <- str_squish(attr_i)
+      attr_i <- str_remove_all(attr_i, "[^A-z|0-9|[:punct:]|\\s]")
+      attr_i <- str_remove_all(attr_i, ":")
+      attr_i <- str_remove_all(attr_i, "/")
+      attr_i <- str_remove_all(attr_i, fixed("\\"))
 
       descriptors <- descriptors |>
         mutate(across(any_of(c("Long")), ~ str_squish(.x))) |>
@@ -152,7 +153,9 @@ import_data <- function(content_stubs,i, geo_struct,attr,avail_years){
         mutate(across(any_of(c("Long")), ~ str_remove_all(.x,"/"))) |>
         mutate(across(any_of(c("Long")), ~ str_remove_all(.x,fixed("\\")))) |>
         mutate(across(any_of(c("Long")), ~ str_remove_all(.x,fixed('"'))))  |>
-        filter(if_any(c("Long"), ~ .x %in% attr))
+        filter(if_any(c("Long"), ~ .x %in% attr_i)) |>
+        filter(if_any(c("Year"), ~ .x==content_stubs[i,]$Year))
+
     }
 
     geo_decode <- get_auscensus_metadata("geo_reverse.zip") |>
@@ -193,12 +196,19 @@ import_data <- function(content_stubs,i, geo_struct,attr,avail_years){
     message(str_c(content_stubs[i,]$Year,": Extracting ",nrow(descriptors), " attributes."))
 
 
-    for(column in descriptors$Short){
+    if(nrow(descriptors)>0){
+     for(xx in  1:nrow(descriptors)){
+      #x(message = "Loading")
 
+      column <-descriptors[xx,]$Short
 
       data_u <- data_j |>
         select(any_of(c(key_col,column))) |>
-        collect() |>
+        collect()
+
+      if(column %in% colnames(data_u)){
+
+      data_u <- data_u |>
         pivot_longer(-any_of(c(key_col,"split")),
                      names_to="Short",
                      values_to = "Value") |>
@@ -219,9 +229,10 @@ import_data <- function(content_stubs,i, geo_struct,attr,avail_years){
                     existing_data_behavior="delete_matching",
                     partitioning="Attribute")
 
+
+      }
     }
-
-
+    }
 
     tryCatch(file_delete(temp_file),
              error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
