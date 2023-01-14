@@ -9,7 +9,7 @@ auscensus
   
 <img src="https://github.com/carlosyanez/auscensus/raw/main/img/hexSticker.png" width = "175" height = "200" align="right" />
 
-**auscensus** provides a way read data from the Australian Bureau of Statistics Data Packs. The motivation behind the package is to be able to easily being to pull out data points for multiple geographic structures for different censuses. Currently, this package works well with ABS data packs from 2011 to 2021.
+**auscensus** provides a way read data from the Australian Bureau of Statistics Data Packs. The motivation behind the package is to be able to easily being to pull out data points for multiple geographic structures for different censuses. Currently, this package works well with ABS data packs from 2006 to 2021.
 
 
 ## Installation and pre-requisites
