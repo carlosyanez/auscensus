@@ -2,7 +2,7 @@
 % Please edit documentation in R/get_content.R
 \name{get_census_summary}
 \alias{get_census_summary}
-\title{Get a particular data point across census}
+\title{Get a summary of one or a collection of statistics across Censuses}
 \usage{
 get_census_summary(
   table_number = NULL,
@@ -22,17 +22,19 @@ get_census_summary(
 \arguments{
 \item{table_number}{number of selected table}
 
-\item{geo_structure}{vector with strings of geo structures (e.g. SA1,LGA,CED)}
+\item{geo_structure}{character presenting the geographical structure to present stats (e.g. SA1,LGA,CED)}
 
-\item{attribute}{attribute}
+\item{attribute}{list with vectors of statistics to be summarise. Each vector element will be aggregated and presented under the item's name, e.g.
+list("60 year old male"=c("Age_years_60_males","Age (Years): 60_males"),}
 
-\item{geo_unit_names}{geo unit names}
+\item{geo_unit_names}{vector with names of the geographic structures to present. They need to correspond with geo_structure, e.g. if geo_structure="LGA",
+acceptable values could be  c("Melbourne","Stonnington","Yarra"). If both this and geo_unit_codes are null, it will present all avaialable elements.}
 
-\item{geo_unit_codes}{geo unit codes}
+\item{geo_unit_codes}{vector with ABS codes of the geo structures to present. Similar to geo_units_names.}
 
-\item{selected_years}{years to filter}
+\item{selected_years}{vector with selected years to display.}
 
-\item{reference_total}{reference total}
+\item{reference_total}{Optional. List containing the names of all statistics representing totals, e.g. list("Total"=c("Total_persons")}
 
 \item{percentage_scale}{1 if percentage to be presented in scale 0-1, or 100 to be shown as 0\%-100\%}
 
@@ -42,14 +44,16 @@ get_census_summary(
 
 \item{data_collected}{TRUE if data_source is a dataset, FALSE if is  a DB,arrow binding}
 
-\item{census_table}{output of list_census_table()}
+\item{census_table}{Instead of using a table number, this allows for a more complex filter table, e.g. containing different table numbers.
+Expected format matches the output of list_census_table().}
 }
 \value{
 data frame with data from file, filtered by division and election year
 }
 \description{
-Extracts a particular data point statistics from census data packs, filterable by particular geographical units.
-Provides and option to express values as percentage of another data point.
+This function allows to produce a summary of one or many statistics across censuses. Results are presented in a simple summary table.
+The function allows to present individual statistics or an aggregation of several statistics (e.g. aggregate number of births by country to present
+a continental total). If the name statistic containing totals is provided, the function has an option to calculate percentages (presented either in 0-1 or 0-100 scale).
 }
 \examples{
 \dontrun{

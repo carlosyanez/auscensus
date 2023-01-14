@@ -21,7 +21,6 @@ knitr::opts_chunk$set(
 )
 library(ggplot2)
 library(auscensus)
-library(rhandsontable)
 
 ```
 
@@ -47,9 +46,7 @@ tables_summary <- census_tables |>
 
 list_census_geo_tables(year = tables_summary$Year,geo="CED|CED_2007|CED_2004",table_number = tables_summary$Number) |>
   mutate(Year=as.character(Year)) |>
-  right_join(tables_summary, by=c("table_number"="Number","Year"="Year")) |>
-  rhandsontable(readOnly = TRUE) |>
-  hot_cols(columnSorting = TRUE)
+  right_join(tables_summary, by=c("table_number"="Number","Year"="Year"))
 
 ```
 
@@ -62,9 +59,7 @@ Therefore, we will retrieve the data from the lowest statistical unit. However, 
 
 list_census_geo_tables(year = tables_summary$Year,geo=c("SA1|CD"),table_number = tables_summary$Number) |>
    mutate(Year=as.character(Year)) |>
-  right_join(tables_summary, by=c("table_number"="Number","Year"="Year")) |>
-  rhandsontable(readOnly = TRUE) |>
-  hot_cols(columnSorting = TRUE)
+  right_join(tables_summary, by=c("table_number"="Number","Year"="Year")) 
 
 
 ```
@@ -94,9 +89,8 @@ for(i in 1:nrow(tables_summary)){
 
 
 
-citizenship_attributes |> 
-  rhandsontable(readOnly = TRUE) |>
-  hot_cols(columnSorting = TRUE)
+citizenship_attributes |>
+  head()
 
 ```
 
@@ -118,9 +112,7 @@ citizenship_attributes <- citizenship_attributes   |>
                       )
 
 
-citizenship_attributes |> 
-  rhandsontable(readOnly = TRUE) |>
-  hot_cols(columnSorting = TRUE)
+citizenship_attributes 
 ```
 
 Using *attribute_tibble_to_list*, this data frame can be converted into the required format.
@@ -215,10 +207,6 @@ ceds  <- c("CED_NAME_2006","CED_NAME_2011","CED_NAME_2016","CED_NAME_2021")
  }
 
 
-citizenship_ced |>
-  select(Unit,Year,Percentage) |>
-  pivot_wider(names_from = Year, values_from = Percentage) |>
-  rhandsontable(readOnly = TRUE) |>
-  hot_cols(columnSorting = TRUE)
+citizenship_ced 
 
 ```

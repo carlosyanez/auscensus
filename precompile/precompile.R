@@ -22,7 +22,6 @@ for(vig in vignettes){
 #knit(here(orig_folder,vignettes[i]), here(vignettes_folder,vignettes[i]))
 
 pkgdown::build_articles()
-pkgdown::build_site()
 
 ##compile site
 

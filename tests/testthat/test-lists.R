@@ -1,0 +1,11 @@
+test_that("lists tests", {
+  list_census_years()
+  list_census_years(mode="all")
+  list_census_geo_types()
+  list_census_geo(geo_types=c("CED","LGA"),geo_name_regex="^Mel")
+  list_census_geo()
+  list_census_tables("01")
+  list_census_tables(table_name_regex="[Tt]enure")
+  list_census_tables()
+  list_census_geo_tables()
+})

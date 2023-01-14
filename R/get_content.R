@@ -19,7 +19,7 @@
 #' @param selected_years  years to filter
 #' @param ignore_cache If TRUE, it will ignore cached files
 #' @param collect_data if TRUE  will return data. if FALSE (default) , it will return {arrow} bindings to cached files
-#' @param attr attributes to filter on
+#' @param attr attributes to filter on, presented as a character vector (e.g c("Age_years_60_males","Age_years_60_females"))
 #' @importFrom rlang .data
 #' @include internal.R
 #' @keywords getdata
@@ -187,9 +187,10 @@ get_census_data <- function(census_table,
 
 
 
-#' Get a particular data point across census
-#' @description Extracts a particular data point statistics from census data packs, filterable by particular geographical units.
-#' Provides and option to express values as percentage of another data point.
+#' Get a summary of one or a collection of statistics across Censuses
+#' @description This function allows to produce a summary of one or many statistics across censuses. Results are presented in a simple summary table.
+#' The function allows to present individual statistics or an aggregation of several statistics (e.g. aggregate number of births by country to present
+#'a continental total). If the name statistic containing totals is provided, the function has an option to calculate percentages (presented either in 0-1 or 0-100 scale).
 #' @return data frame with data from file, filtered by division and election year
 #' @importFrom dplyr select any_of starts_with filter if_any rename left_join mutate bind_rows if_else collect group_by summarise
 #' @importFrom tibble tibble
@@ -198,17 +199,21 @@ get_census_data <- function(census_table,
 #' @importFrom stringr str_replace_all
 #' @importFrom rlang .data
 #' @param table_number number of selected table
-#' @param geo_structure vector with strings of geo structures (e.g. SA1,LGA,CED)
-#' @param attribute attribute
-#' @param geo_unit_names geo unit names
-#' @param geo_unit_codes geo unit codes
-#' @param selected_years  years to filter
-#' @param reference_total reference total
+#' @param geo_structure character presenting the geographical structure to present stats (e.g. SA1,LGA,CED)
+#' @param attribute list with vectors of statistics to be summarise. Each vector element will be aggregated and presented under the item's name, e.g.
+#'  list("60 year old male"=c("Age_years_60_males","Age (Years): 60_males"),
+#   "60 year old female"=c("Age_years_60_males","Age (Years): 60_females"))
+#' @param geo_unit_names vector with names of the geographic structures to present. They need to correspond with geo_structure, e.g. if geo_structure="LGA",
+#' acceptable values could be  c("Melbourne","Stonnington","Yarra"). If both this and geo_unit_codes are null, it will present all avaialable elements.
+#' @param geo_unit_codes vector with ABS codes of the geo structures to present. Similar to geo_units_names.
+#' @param selected_years  vector with selected years to display.
+#' @param reference_total Optional. List containing the names of all statistics representing totals, e.g. list("Total"=c("Total_persons")
 #' @param percentage_scale 1 if percentage to be presented in scale 0-1, or 100 to be shown as 0%-100%
 #' @param ignore_cache If TRUE, it will ignore cached files
 #' @param data_source result of get_census_data (will ignore other parameters if this is provided)
 #' @param data_collected TRUE if data_source is a dataset, FALSE if is  a DB,arrow binding
-#' @param census_table output of list_census_table()
+#' @param census_table Instead of using a table number, this allows for a more complex filter table, e.g. containing different table numbers.
+#'  Expected format matches the output of list_census_table().
 #' @importFrom rlang .data
 #' @include internal.R
 #' @keywords getdata
@@ -337,7 +342,7 @@ get_census_summary <- function(table_number=NULL,
         attr_j <- str_remove_all(attr_j, fixed("\\"))
 
         data_i <- data_i |>
-          mutate(across(c("Attribute"), ~ if_else(.x %in% str_replace(attr_j,":","-"), names(attribute)[j],.x)))
+          mutate(across(c("Attribute"), ~ if_else(.x %in% str_replace_all(attr_j,":","-"), names(attribute)[j],.x)))
 
       }
     }
@@ -346,7 +351,7 @@ get_census_summary <- function(table_number=NULL,
       for(j in 1:length(reference_total)){
 
         data_i <- data_i |>
-          mutate(across(c("Attribute"), ~ if_else(.x %in% str_replace(reference_total[[j]],":","-"), names(reference_total)[j],.x)))
+          mutate(across(c("Attribute"), ~ if_else(.x %in% str_replace_all(reference_total[[j]],":","-"), names(reference_total)[j],.x)))
 
       }
     }

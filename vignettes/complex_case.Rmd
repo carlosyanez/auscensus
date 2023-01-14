@@ -36,12 +36,15 @@ tables_summary <- census_tables |>
 
 list_census_geo_tables(year = tables_summary$Year,geo="CED|CED_2007|CED_2004",table_number = tables_summary$Number) |>
   mutate(Year=as.character(Year)) |>
-  right_join(tables_summary, by=c("table_number"="Number","Year"="Year")) |>
-  rhandsontable(readOnly = TRUE) |>
-  hot_cols(columnSorting = TRUE)
+  right_join(tables_summary, by=c("table_number"="Number","Year"="Year"))
+#> # A tibble: 4 × 3
+#>   Year  table_number CED  
+#>   <chr> <chr>        <lgl>
+#> 1 2011  01           TRUE 
+#> 2 2016  01           TRUE 
+#> 3 2021  01           TRUE 
+#> 4 2006  01           NA
 ```
-
-<img src="vignettes/complex-case-unnamed-chunk-1-1.png" alt="plot of chunk unnamed-chunk-1" width="100%" />
 
 
 Therefore, we will retrieve the data from the lowest statistical unit. However, SA1 were not available in 2006 - where the smallest area was a "CD".
@@ -53,12 +56,15 @@ Therefore, we will retrieve the data from the lowest statistical unit. However, 
 
 list_census_geo_tables(year = tables_summary$Year,geo=c("SA1|CD"),table_number = tables_summary$Number) |>
    mutate(Year=as.character(Year)) |>
-  right_join(tables_summary, by=c("table_number"="Number","Year"="Year")) |>
-  rhandsontable(readOnly = TRUE) |>
-  hot_cols(columnSorting = TRUE)
+  right_join(tables_summary, by=c("table_number"="Number","Year"="Year")) 
+#> # A tibble: 4 × 4
+#>   Year  table_number CD    SA1  
+#>   <chr> <chr>        <lgl> <lgl>
+#> 1 2006  01           TRUE  NA   
+#> 2 2011  01           NA    TRUE 
+#> 3 2016  01           NA    TRUE 
+#> 4 2021  01           NA    TRUE
 ```
-
-<img src="vignettes/complex-case-unnamed-chunk-2-1.png" alt="plot of chunk unnamed-chunk-2" width="100%" />
 
 The next step is to figure the attributes for the numbers of Australian citizen and total population, which are presented below:
 
@@ -86,12 +92,18 @@ for(i in 1:nrow(tables_summary)){
 
 
 
-citizenship_attributes |> 
-  rhandsontable(readOnly = TRUE) |>
-  hot_cols(columnSorting = TRUE)
+citizenship_attributes |>
+  head()
+#> # A tibble: 6 × 3
+#>   Table Attribute                     Year 
+#>   <chr> <chr>                         <chr>
+#> 1 01    Total Persons_males           2006 
+#> 2 01    Total Persons_females         2006 
+#> 3 01    Total Persons_persons         2006 
+#> 4 01    Age Groups: 0-4 Years_males   2006 
+#> 5 01    Age Groups: 0-4 Years_females 2006 
+#> 6 01    Age Groups: 0-4 Years_persons 2006
 ```
-
-<img src="vignettes/complex-case-unnamed-chunk-3-1.png" alt="plot of chunk unnamed-chunk-3" width="100%" />
 
 
 ```r
@@ -112,12 +124,15 @@ citizenship_attributes <- citizenship_attributes   |>
                       )
 
 
-citizenship_attributes |> 
-  rhandsontable(readOnly = TRUE) |>
-  hot_cols(columnSorting = TRUE)
+citizenship_attributes 
+#> # A tibble: 4 × 5
+#>   Attribute                  `2006` `2011` `2016` `2021`
+#>   <chr>                      <lgl>  <lgl>  <lgl>  <lgl> 
+#> 1 Australian Citizen_persons TRUE   NA     NA     NA    
+#> 2 Australian_citizen_persons NA     TRUE   TRUE   TRUE  
+#> 3 Total Persons_persons      TRUE   NA     NA     NA    
+#> 4 Total_persons_persons      NA     TRUE   TRUE   TRUE
 ```
-
-<img src="vignettes/complex-case-unnamed-chunk-4-1.png" alt="plot of chunk unnamed-chunk-4" width="100%" />
 
 Using *attribute_tibble_to_list*, this data frame can be converted into the required format.
 
@@ -162,7 +177,8 @@ for(year in census_years){
 
 
 }
-#> ERROR : [EBUSY] Failed to remove 'C:/Users/carlo/OneDrive/Documents/.auscensus_cache/CD_Qld_B01.csv': resource busy or locked 
+#> ERROR : [EBUSY] Failed to remove 'C:/Users/carlo/OneDrive/Documents/.auscensus_cache/CD_NSW_B01.csv': resource busy or locked 
+#> ERROR : [EBUSY] Failed to remove 'C:/Users/carlo/OneDrive/Documents/.auscensus_cache/CD_NSW_B01.csv': resource busy or locked 
 #> ERROR : [EBUSY] Failed to remove 'C:/Users/carlo/OneDrive/Documents/.auscensus_cache/2011Census_B01_AUST_SA1_short.csv': resource busy or locked 
 #> ERROR : [EBUSY] Failed to remove 'C:/Users/carlo/OneDrive/Documents/.auscensus_cache/2016Census_G01_AUS_SA1.csv': resource busy or locked 
 #> ERROR : [EBUSY] Failed to remove 'C:/Users/carlo/OneDrive/Documents/.auscensus_cache/2021Census_G01_AUST_SA1.csv': resource busy or locked
@@ -215,11 +231,19 @@ ceds  <- c("CED_NAME_2006","CED_NAME_2011","CED_NAME_2016","CED_NAME_2021")
  }
 
 
-citizenship_ced |>
-  select(Unit,Year,Percentage) |>
-  pivot_wider(names_from = Year, values_from = Percentage) |>
-  rhandsontable(readOnly = TRUE) |>
-  hot_cols(columnSorting = TRUE)
+citizenship_ced 
+#> # A tibble: 595 × 6
+#>    Unit       Year Attribute            Value  Total Percentage
+#>    <chr>     <dbl> <chr>                <dbl>  <dbl>      <dbl>
+#>  1 Adelaide   2006 Australian Citizens 115908 140151       82.7
+#>  2 Aston      2006 Australian Citizens 115010 129463       88.8
+#>  3 Ballarat   2006 Australian Citizens 118247 129221       91.5
+#>  4 Banks      2006 Australian Citizens 104181 118371       88.0
+#>  5 Barker     2006 Australian Citizens 133033 145410       91.5
+#>  6 Barton     2006 Australian Citizens 105287 131234       80.2
+#>  7 Bass       2006 Australian Citizens  85631  94270       90.8
+#>  8 Batman     2006 Australian Citizens 105561 128107       82.4
+#>  9 Bendigo    2006 Australian Citizens 121930 131885       92.5
+#> 10 Bennelong  2006 Australian Citizens 104473 129340       80.8
+#> # … with 585 more rows
 ```
-
-<img src="vignettes/complex-case-unnamed-chunk-7-1.png" alt="plot of chunk unnamed-chunk-7" width="100%" />

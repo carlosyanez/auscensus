@@ -24,7 +24,7 @@ get_census_data(
 
 \item{collect_data}{if TRUE  will return data. if FALSE (default) , it will return {arrow} bindings to cached files}
 
-\item{attr}{attributes to filter on}
+\item{attr}{attributes to filter on, presented as a character vector (e.g c("Age_years_60_males","Age_years_60_females"))}
 }
 \value{
 data frame with data from file, filtered by division and election year

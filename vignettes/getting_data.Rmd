@@ -162,22 +162,22 @@ data$`2006_LGA_B04`
 #> # A tibble: 685 × 309
 #>     Year Census_Code Unit  Age (…¹ Age (…² Age (…³ Age (…⁴ Age (…⁵ Age (…⁶ Age (…⁷ Age (…⁸ Age (…⁹ Age (…˟ Age (…˟ Age (…˟ Age (…˟ Age (…˟ Age (…˟ Age (…˟
 #>    <dbl> <chr>       <chr>   <int>   <int>   <int>   <int>   <int>   <int>   <int>   <int>   <int>   <int>   <int>   <int>   <int>   <int>   <int>   <int>
-#>  1  2006 LGA89399    Unin…    2121    9798   10282   20080    2214    4335   10436   21360      16       7   10924      23    2021    2068    4089    2094
-#>  2  2006 LGA89499    No U…       4      21      26      47       6      10      18      26       0       0       8       0       3       0       3       3
-#>  3  2006 LGA10050    Albu…     305    1490    1524    3014     337     642    1675    3422       8       4    1747      12     305     326     631     357
-#>  4  2006 LGA10110    Armi…     144     660     704    1364     137     281     910    1809       0       0     899       0     163     157     320     173
-#>  5  2006 LGA10150    Ashf…     246    1048    1162    2210     265     511     943    1910      14       0     967      14     199     201     400     171
-#>  6  2006 LGA10200    Aubu…     562    2383    2516    4899     541    1103    2049    4223       0       5    2174       5     420     451     871     434
-#>  7  2006 LGA10250    Ball…     197     997    1015    2012     191     388    1370    2754       7       0    1384       7     256     273     529     246
-#>  8  2006 LGA10300    Balr…      16      76      87     163       8      24      82     175       0       0      93       0      15      15      30      18
-#>  9  2006 LGA10350    Bank…    1240    6130    6578   12708    1331    2571    5957   12425      14       3    6468      17    1202    1257    2459    1189
-#> 10  2006 LGA10470    Bath…     227    1115    1240    2355     276     503    1272    2609       6       0    1337       6     243     254     497     234
+#>  1  2006 LGA89399    Unin…    9798   10282    2121   20080    2214   10436    4335   10924   21360      16       7      23    2021    2068    4089    2094
+#>  2  2006 LGA89499    No U…      21      26       4      47       6      18      10       8      26       0       0       0       3       0       3       3
+#>  3  2006 LGA10050    Albu…    1490    1524     305    3014     337    1675     642    1747    3422       8       4      12     305     326     631     357
+#>  4  2006 LGA10110    Armi…     660     704     144    1364     137     910     281     899    1809       0       0       0     163     157     320     173
+#>  5  2006 LGA10150    Ashf…    1048    1162     246    2210     265     943     511     967    1910      14       0      14     199     201     400     171
+#>  6  2006 LGA10200    Aubu…    2383    2516     562    4899     541    2049    1103    2174    4223       0       5       5     420     451     871     434
+#>  7  2006 LGA10250    Ball…     997    1015     197    2012     191    1370     388    1384    2754       7       0       7     256     273     529     246
+#>  8  2006 LGA10300    Balr…      76      87      16     163       8      82      24      93     175       0       0       0      15      15      30      18
+#>  9  2006 LGA10350    Bank…    6130    6578    1240   12708    1331    5957    2571    6468   12425      14       3      17    1202    1257    2459    1189
+#> 10  2006 LGA10470    Bath…    1115    1240     227    2355     276    1272     503    1337    2609       6       0       6     243     254     497     234
 #> # … with 675 more rows, 290 more variables: `Age (Years) 11_males` <int>, `Age (Years) 11_persons` <int>, `Age (Years) 12_females` <int>,
 #> #   `Age (Years) 12_males` <int>, `Age (Years) 12_persons` <int>, `Age (Years) 13_females` <int>, `Age (Years) 13_males` <int>,
 #> #   `Age (Years) 13_persons` <int>, `Age (Years) 14_females` <int>, `Age (Years) 14_males` <int>, `Age (Years) 14_persons` <int>,
 #> #   `Age (Years) 15-19 Years_females` <int>, `Age (Years) 15-19 Years_males` <int>, `Age (Years) 15-19 Years_persons` <int>,
-#> #   `Age (Years) 15_females` <int>, `Age (Years) 15_males` <int>, `Age (Years) 15_persons` <int>, `Age (Years) 16_females` <int>,
-#> #   `Age (Years) 16_males` <int>, `Age (Years) 16_persons` <int>, `Age (Years) 17_females` <int>, `Age (Years) 17_males` <int>,
+#> #   `Age (Years) 15_females` <int>, `Age (Years) 15_males` <int>, `Age (Years) 15_persons` <int>, `Age (Years) 16_males` <int>,
+#> #   `Age (Years) 16_females` <int>, `Age (Years) 16_persons` <int>, `Age (Years) 17_females` <int>, `Age (Years) 17_males` <int>,
 #> #   `Age (Years) 17_persons` <int>, `Age (Years) 18_females` <int>, `Age (Years) 18_males` <int>, `Age (Years) 18_persons` <int>, …
 ```
 
@@ -197,6 +197,7 @@ get_census_summary(table_number = "04",
                    attribute = list("60 year old male"=c("Age_years_60_males","Age (Years): 60_males"),
                                      "60 year old female"=c("Age_years_60_males","Age (Years): 60_females")),
                    geo_structure = "LGA")
+#> ERROR : [EBUSY] Failed to remove 'C:/Users/carlo/OneDrive/Documents/.auscensus_cache/LGA_Vic_B04_A.csv': resource busy or locked 
 #> ERROR : [EBUSY] Failed to remove 'C:/Users/carlo/OneDrive/Documents/.auscensus_cache/LGA_Vic_B04_A.csv': resource busy or locked 
 #> ERROR : [EBUSY] Failed to remove 'C:/Users/carlo/OneDrive/Documents/.auscensus_cache/2011Census_B04A_AUST_LGA_short.csv': resource busy or locked 
 #> ERROR : [EBUSY] Failed to remove 'C:/Users/carlo/OneDrive/Documents/.auscensus_cache/2016Census_G04A_AUS_LGA.csv': resource busy or locked 
@@ -228,7 +229,7 @@ get_census_summary(table_number = "04",
                    geo_unit_names  = c("Melbourne","Stonnington","Yarra"),
                    reference_total = list("Total"=c("Total_persons")),
                    geo_structure = "LGA")
-#> ERROR : [EBUSY] Failed to remove 'C:/Users/carlo/OneDrive/Documents/.auscensus_cache/2016Census_G04A_AUS_LGA.csv': resource busy or locked 
+#> ERROR : [EBUSY] Failed to remove 'C:/Users/carlo/OneDrive/Documents/.auscensus_cache/2021Census_G04A_AUST_LGA.csv': resource busy or locked 
 #> ERROR : [EBUSY] Failed to remove 'C:/Users/carlo/OneDrive/Documents/.auscensus_cache/LGA_Vic_B04_A.csv': resource busy or locked 
 #> ERROR : [EBUSY] Failed to remove 'C:/Users/carlo/OneDrive/Documents/.auscensus_cache/2011Census_B04A_AUST_LGA_short.csv': resource busy or locked 
 #> ERROR : [EBUSY] Failed to remove 'C:/Users/carlo/OneDrive/Documents/.auscensus_cache/2016Census_G04A_AUS_LGA.csv': resource busy or locked 
