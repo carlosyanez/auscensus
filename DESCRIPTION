@@ -37,6 +37,7 @@ Suggests:
     testthat (>= 3.0.0)
 VignetteBuilder: knitr
 Collate: 
+    'auscensus-package.R'
     'cache_management.R'
     'internal.R'
     'get_content.R'
