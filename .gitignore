@@ -42,3 +42,5 @@ rsconnect/
 /data-raw/processed/*
 /data-raw/*/raw/*
 /data-raw/*/processed/*
+precompile/.trackdown/*
+
