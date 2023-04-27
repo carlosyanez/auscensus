@@ -274,7 +274,7 @@ list_census_attributes <- function(number=NULL, attribute_regex=NULL){
     select(c("Profiletable","Long","Year"))|>
     mutate(dummy=TRUE) |>
     distinct() |>
-    pivot_wider(any_of(c("Profiletable","Long")),
+    pivot_wider(id_cols=any_of(c("Profiletable","Long")),
                 values_from = "dummy",names_from = "Year") |>
     rename("Table"="Profiletable","Attribute"="Long")
 
