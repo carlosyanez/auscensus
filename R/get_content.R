@@ -4,7 +4,7 @@
 #' @description  This function extracts table files from each data pack (given tables and geo structure), and will collate them together into a list(),
 #'  which it will return. By default it will save the processed tables in the cache folder (in parquet files), which it will use on subsquent calls.
 #' @return data frame with data from file, filtered by division and election year
-#' @importFrom dplyr filter if_any left_join relocate mutate all_of across distinct pull collect across bind_rows
+#' @importFrom dplyr filter if_any left_join relocate mutate all_of across distinct pull collect across bind_rows case_when
 #' @importFrom tibble tibble
 #' @importFrom stringr  str_c str_remove str_length str_replace_all str_squish str_remove_all fixed
 #' @importFrom zip unzip
@@ -133,11 +133,16 @@ get_census_data <- function(census_table,
 
     data_index <- length(data) + 1
 
-    message(content_stubs[i,]$cache_exists)
-    message(ignore_cache)
-    if(content_stubs[i,]$cache_exists&!ignore_cache){
 
+    cache_exists_i <- case_when(
+      is.na(content_stubs[i,]$cache_exists) ~ FALSE,
+      is.null(content_stubs[i,]$cache_exists) ~ FALSE,
+      TRUE ~ content_stubs[i,]$cache_exists,
+    )
 
+    if(cache_exists_i&!ignore_cache){
+
+        message("Getting cached data")
 
         data_i <- open_dataset(content_stubs[i,]$cached_file,
                                format="parquet",
@@ -155,7 +160,7 @@ get_census_data <- function(census_table,
         }
 
     }else{
-
+      message("Getting data from source file")
       data_i <- import_data(content_stubs,i, geo_struct,attr_i,unique(content_stubs$Year))
 
 
@@ -166,10 +171,6 @@ get_census_data <- function(census_table,
     attr_i <- str_remove_all(attr_i, ":")
     attr_i <- str_remove_all(attr_i, "/")
     attr_i <- str_remove_all(attr_i, fixed("\\"))
-
-    #data_i <- open_dataset(content_stubs[i,]$cached_file,
-    #                       format="parquet",
-    #                       unify_schemas=TRUE)
 
     data_i <- data_i |>
               filter(if_any(any_of(c("Attribute")), ~ .x %in% !!attr_i))
