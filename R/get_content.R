@@ -10,7 +10,7 @@
 #' @importFrom zip unzip
 #' @importFrom stats setNames
 #' @importFrom fs path file_exists
-#' @importFrom tidyr pivot_longer pivot_wider crossing
+#' @importFrom tidyr pivot_longer pivot_wider crossing replace_na
 #' @importFrom arrow read_parquet open_dataset write_dataset
 #' @importFrom progressr with_progress
 #' @importFrom methods is
@@ -109,7 +109,8 @@ get_census_data <- function(census_table,
   content_stubs <- crossing(tibble(geo=geo_structure),table_stubs) |>
     mutate(identifier =str_c(.data$Year,"_",.data$geo,"_",.data$element),
            cached_file=path(cache_dir,str_c(.data$identifier)),
-           cache_exists=file_exists(.data$cached_file))
+           cache_exists=file_exists(.data$cached_file)) |>
+    replace_na(list(cache_exists=FALSE))
 
 
   #clean up so far
@@ -131,6 +132,9 @@ get_census_data <- function(census_table,
     }
 
     data_index <- length(data) + 1
+
+    message(content_stubs[i,]$cache_exists)
+    message(ignore_cache)
     if(content_stubs[i,]$cache_exists&!ignore_cache){
 
 
