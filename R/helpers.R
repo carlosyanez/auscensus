@@ -78,6 +78,7 @@ calculate_percentage <- function(df,key_col,value_col,key_value="Total",percenta
 
   df <- df |>
     mutate(Percentage = case_when(
+      is.na(.data$Value) ~ NA,
       is.na(.data$Total) ~ -1,
       .data$Total == 0   ~ -1,
       TRUE ~    percentage_scale*.data$Value/.data$Total
