@@ -2,7 +2,7 @@ template:
   bootstrap: 5
   bootswatch: cosmo
   params:
-    ganalytics: G-G75W4FBYH8
+    ganalytics: G-V0FR1QV26R
   bslib:
     fg: "#00843D"
     bg: "white"
